@@ -3,7 +3,40 @@
 <head>
   <title>EntroType Typing Tutor</title>
   <script type="text/javascript" src="jquery-1.8.0.min.js"></script>
+  <script type="text/javascript" src="keyboardlayout.js"></script>
   <script type="text/javascript" src="entrotype.js"></script>
+  <script type="text/javascript">
+    game = new BasicGame(new KeyboardLayout(KeyboardLayout.ANSI_QWERTY));
+
+    $(document).ready(function(){
+      // Key Up
+      $(document).keypress(function(event){
+        console.log("key: " + event.which);
+        event.preventDefault();
+      });
+
+      // Initial setup
+      $("#btn_start").
+        val("Start").
+        click(function(event){
+          var target = event.delegateTarget;
+          console.log("Clicked button " + target.value);
+          game.running = !game.running;
+          target.value = (game.running) ? "Stop" : "Start";
+        });
+
+      $("#div_viewport").text("Click 'Start' to begin.");
+
+      // Starting a game:
+      // - Show a countdown for 3 seconds
+      // - Show a key to strike, listen for key events
+      // - Set a timer for a maximum delay for a press to occur
+      //    - Key pressed: show happiness (or sadness) then next character
+      //    - Timer fired: show sadness then next character
+      // - Always set a new timer with a new character
+      // - Go until stopped.
+    });
+  </script>
   <style>
     BODY {
       margin:0px
