@@ -106,6 +106,62 @@ KeyboardLayout = function(simplifiedLayout) {
                          m];
     }
   }
+
+  // Note that "S0" is a query that has to be used implicitly, pretty much all
+  // the time.  It is treated specially.
+  this.levels = this.defineLevels([
+      ["Home Row",    ["H2-", "H3-", "H4-", "H56-", "H1-"]],
+      ["Top Row",     ["T2-", "T3-", "T4-", "T5-", "T1-", "T6-"]],
+      ["Bottom Row",  ["B2-", "B3-", "B4-", "B5-", "B1-", "B6-"]],
+      ["Numbers Row", ["N2-", "N3-", "N4-", "N5-", "N1-", "N6-"]],
+      ["Shift Key",   ["H123456!", "T123456!", "B123456!", "N123456!"]]]);
+};
+
+KeyboardLayout.prototype.defineLevels = function(levelSpec) {
+  // levelSpec is a list of pairs, each of which is
+  //  <title, [list of queries]>.
+  // The queries, therefore, are grouped logically.  At the end of each
+  // grouping, we insert a summary for that group, and after that a cumulative
+  // review as needed.
+  //
+  // Returns a list of [<title, query> ...] pairs, one for each level,
+  // including summaries, etc.
+  var levels = [];
+  var current_summary = "";
+  for (var qgi = 0, qglen = levelSpec.length; qgi < qglen; ++qgi) {
+    var qg = levelSpec[qgi];
+    var qtitle = qg[0];
+    var qgroup = qg[1];
+    var summary = this.queryUnion(qgroup);
+
+    for (var qi = 0, qlen = qgroup.length; qi < qlen; ++qi) {
+      var title = qtitle + " " + (Number(qi) + 1);
+      var query = qgroup[qi];
+      var chars = this.query(query);
+      var clen = chars.length;
+      if (clen > 0) {
+        if (clen < 2) {
+          console.warn("Boring level, num_chars " + clen, query);
+        }
+        levels.push([title, query]);
+      }
+    }
+    // Add the review.
+    levels.push([qtitle + " - Review", summary]);
+
+    // Add a cumulative review if necessary.
+    current_summary = this.queryUnion([current_summary, summary]);
+    var review_title = "";
+    if (qgi > 0) {
+      if (qgi < (qglen-1)) {
+        review_title = "Cumulative Review " + (Number(qgi) + 1);
+      } else {
+        review_title = "Final Review";
+      }
+      levels.push([review_title, current_summary]);
+    }
+  }
+  return levels;
 };
 
 KeyboardLayout.prototype.splitSpecStr = function(specStr) {
@@ -155,7 +211,16 @@ KeyboardLayout.prototype.nonEmptyIntersection = function(arr1, arr2) {
 // NOTE: there is currently no way to specify that you *must* combine
 // two meta keys (e.g., for Ctrl-Shift combinations).
 KeyboardLayout.prototype.query = function(constraintStr) {
-  var split_spec = this.splitSpecStr(constraintStr);
+  // Cache the query results so we can just rely on queries.
+  if (this._query_cache == undefined) {
+    this._query_cache = {};
+  }
+  var canonicalConstraintStr = this.queryUnion([constraintStr]);
+  if (this._query_cache[canonicalConstraintStr] != undefined) {
+    return this._query_cache[canonicalConstraintStr];
+  }
+
+  var split_spec = this.splitSpecStr(canonicalConstraintStr);
 
   // Search for all keys that satisfy these constraints.  That means that
   // all specified query classes have a matching element in each key.
@@ -179,6 +244,7 @@ KeyboardLayout.prototype.query = function(constraintStr) {
       matching_chars.push(c);
     }
   }
+  this._query_cache[canonicalConstraintStr] = matching_chars;
   return matching_chars;
 };
 
@@ -209,11 +275,9 @@ KeyboardLayout.prototype.queryUnion = function(queryList) {
   return spec.rows + spec.hands + spec.fingers + spec.modifiers;
 };
 
-KeyboardLayout.prototype.Spec = function(rows, hands, fingers, modifiers) {
-  this.rows = rows;
-  this.hands = hands;
-  this.fingers = fingers;
-  this.modifiers = modifiers;
+KeyboardLayout.prototype.getRandomChar = function(query) {
+  var chars = this.query(query);
+  return chars[Math.floor(Math.random() * chars.length)];
 };
 
 // This is a simplified keyboard map using the approach described in
