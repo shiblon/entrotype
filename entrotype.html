@@ -5,7 +5,8 @@
   <script type="text/javascript" src="jquery-1.8.0.min.js"></script>
   <script type="text/javascript" src="keyboardlayout.js"></script>
   <script type="text/javascript">
-    SimpleGame = function(parentContainer, randomCharFunc) {
+    SimpleGame = function(parentContainer, randomCharFunc, options) {
+      options = options || {};
       this._parent_container = $(parentContainer);
       this._random_char_func = randomCharFunc;
 
@@ -13,6 +14,7 @@
       this._num_questions = 0;
       this._num_correct = 0;
 
+      this._max_char_millis = options["charTimeout"] || 3000;
       // TODO: make this configurable
       this._max_char_millis = 3000;
 
@@ -198,14 +200,45 @@
     };
 
     $(document).ready(function(){
-      layout = new KeyboardLayout(KeyboardLayout.ANSI_QWERTY);
-      game = new SimpleGame($("#div_viewport"),
-        $.proxy(function(){return layout.getRandomChar("H-");}, layout));
+      var layout = new KeyboardLayout(KeyboardLayout.ANSI_QWERTY);
+      var level_query = "";
+
+      var getRandomChar = function() {
+        return layout.getRandomChar(level_query);
+      };
+
+      var updateSelectionDisplay = function() {
+        $("div .level-select").each(function(idx, elem) {
+          elem = $(elem).removeClass("selected");
+          if (elem.attr("id") == level_query) {
+            elem.addClass("selected");
+          }
+        });
+      };
+
+      var level_div = $("#div_levels");
+      $.each(layout.levels, function(idx, elem) {
+        level_div.append($("<div/>", {
+            text: elem.title,
+            id: elem.query,
+            class: "level-select",
+            css: {
+              position: "relative",
+              display: "block",
+            },
+            click: function(event) {
+              level_query = elem.query;
+              console.log("changed query to " + level_query);
+              updateSelectionDisplay();
+            },
+        }));
+      });
+
+      game = new SimpleGame($("#div_viewport"), getRandomChar);
 
       // Key Up
       $(document).keypress(function(event){
         var ch = String.fromCharCode(event.which);
-        console.log("key: " + ch);
         game.answerAttempt(ch);
         event.preventDefault();
       });
@@ -215,7 +248,6 @@
         val("Start").
         click(function(event){
           var target = event.delegateTarget;
-          console.log("Clicked button " + target.value);
           if (game.running()) {
             game.stop();
           } else {
@@ -240,6 +272,32 @@
       text-align: center;
       position: relative;
     }
+    #div_controls {
+      top: 0px;
+      text-align: center;
+      position: relative;
+      display: inline-block;
+      vertical-align: top;
+    }
+    #div_levels {
+      top: 0px;
+      display: inline-block;
+      position: relative;
+      border: 1px black solid;
+      vertical-align: top;
+    }
+    #div_main {
+      display: inline-block;
+      position: relative;
+      border: 1px blue solid;
+    }
+    .level-select {
+      background-color: #eee;
+      border: 1px solid green;
+    }
+    .selected {
+      background-color: #ccc;
+    }
     .neutral {
       background-color: #ee2;
     }
@@ -255,9 +313,14 @@
   </style>
 </head>
 <body>
-  <div id="div_viewport"></div>
-  <form>
-    <input id="btn_start" type="button">
-  </form>
+  <div id="div_main">
+    <div id="div_levels"></div>
+    <div id="div_controls">
+      <div id="div_viewport"></div>
+      <form>
+        <input id="btn_start" type="button">
+      </form>
+    </div>
+  </div>
 </body>
 </html>

@@ -1,3 +1,8 @@
+KeyboardLevel = function(title, query) {
+  this.title = title;
+  this.query = query;
+}
+
 KeyboardLayout = function(simplifiedLayout) {
   // Mapping from characters to finger and distance.
   // Pair: <chars, position> where position has three elements.
@@ -143,11 +148,11 @@ KeyboardLayout.prototype.defineLevels = function(levelSpec) {
         if (clen < 2) {
           console.warn("Boring level, num_chars " + clen, query);
         }
-        levels.push([title, query]);
+        levels.push(new KeyboardLevel(title, query));
       }
     }
     // Add the review.
-    levels.push([qtitle + " - Review", summary]);
+    levels.push(new KeyboardLevel(qtitle + " - Review", summary));
 
     // Add a cumulative review if necessary.
     current_summary = this.queryUnion([current_summary, summary]);
@@ -158,7 +163,7 @@ KeyboardLayout.prototype.defineLevels = function(levelSpec) {
       } else {
         review_title = "Final Review";
       }
-      levels.push([review_title, current_summary]);
+      levels.push(new KeyboardLevel(review_title, current_summary));
     }
   }
   return levels;
