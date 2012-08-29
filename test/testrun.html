@@ -7,12 +7,33 @@
   <script type="text/javascript" src="keyboardlayout.js"></script>
   <script type="text/javascript" src="runrungame.js"></script>
   <script type="text/javascript">
+    EverySecondTicker = function() {
+      this._TICK_INTERVAL = 1000;
+    };
+
+    EverySecondTicker.prototype.reset = function() {
+      this._last_tick = null;
+    };
+
+    EverySecondTicker.prototype.tick = function(game, t0, elapsed) {
+      if (this._last_tick != null &&
+          this._last_tick + this._TICK_INTERVAL > elapsed) {
+        return;
+      }
+
+      console.log(new Date());
+
+      // Figure out a relatively integral last tick, so as to minimize drift.
+      this._last_tick = elapsed - (elapsed % this._TICK_INTERVAL);
+    };
+
     $(document).ready(function() {
         layout = new KeyboardLayout(KeyboardLayout.ANSI_QWERTY);
 
         var getChar = function() {return layout.getRandomChar("H-");}
 
         game = new RunRunGame($("#div_viewport"), getChar);
+        game.addTicker(new EverySecondTicker());
     });
   </script>
   <style type="text/css">
