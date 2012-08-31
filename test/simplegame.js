@@ -188,7 +188,7 @@ SimpleGame.prototype.answerAttempt = function(character) {
     $("#div_result").
       removeClass("neutral correct").
       addClass("wrong").
-      text("oops");
+      text("oops: " + character);
   }
 
   setTimeout($.proxy(this._doCharCycle, this), 800);
