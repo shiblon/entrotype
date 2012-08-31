@@ -1,5 +1,56 @@
 // Requires jQuery
 
+Heap = function() {
+  this._heap = [];
+};
+
+Heap.prototype.push = function(key, value) {
+  value.__heap_key = key;
+  this._heap.push(value);
+  this._bubble_up(this._heap.length - 1);
+};
+
+Heap.prototype.pop = function() {
+  var top_val = this._heap[0];
+  this._heap[0] = this._heap.pop();
+  this._bubble_down(0);
+  return [top_val.__heap_key, top_val];
+};
+
+Heap.prototype.peek = function() {
+  var val = this._heap[0];
+  return [val.__heap_key, val];
+};
+
+Heap.prototype._bubble_down = function(topIndex) {
+  if (topIndex >= this._heap.length) {
+    return;
+  }
+  var b = (topIndex + 1) * 2 - 1;
+  if (this._heap[b] > this._heap[b+1]) {
+    b = b+1;
+  }
+  if (this._heap[topIndex].__heap_key > this._heap[b].__heap_key) {
+    var tmp = this._heap[b];
+    this._heap[b] = this._heap[topIndex];
+    this._heap[topIndex] = this._heap[b];
+    this._bubble_down(b);
+  }
+};
+
+Heap.prototype._bubble_up = function(bottomIndex) {
+  if (bottomIndex == 0) {
+    return;
+  }
+  var b = Math.floor((bottomIndex + 1) / 2) - 1;
+  if (this._heap[b].__heap_key > this._heap[a].__heap_key) {
+    var tmp = this._heap[b];
+    this._heap[b] = this._heap[bottomIndex];
+    this._heap[bottomIndex] = this._heap[b];
+    this._bubble_up(b);
+  }
+};
+
 RunRunGame = function(parentContainer, randomCharFunc, options) {
   options = options || {};
 
