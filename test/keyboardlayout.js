@@ -390,3 +390,63 @@ KeyboardLayout.ANSI_DVORAK = [
     ["zZ", "BR5"],
     [" ", "SLR0"]];
 
+
+// EXPERIMENTAL approach
+
+// TODO: Document this format.
+KeyboardLayout.HARDWARE_ANSI = [
+  "6543211234567.",
+  ".5432112345678",
+  ".54321123456..",
+  ".5432112345...",
+  ".....00.......",
+];
+
+KeyboardLayout.HARDWARE_ISO = [
+  "6543211234567.",
+  ".543211234567.",
+  ".543211234567.",
+  "65432112345...",
+  ".....00.......",
+];
+
+KeyboardLayout.HARDWARE_JIS = [
+  "6543211234567.",
+  ".543211234567.",
+  ".543211234567.",
+  ".54321123456..",
+  ".....00.......",  // TODO: is this right? It looks like there are more.
+];
+
+// TODO: write something that creates queries out of this format.
+KeyboardLayout.EXPERIMENTAL_ANSI_QWERTY = {
+  hardware: KeyboardLayout.HARDWARE_ANSI,
+  none: [
+    "`1234567890-= ",
+    " qwertyuiop[]\\",
+    " asdfghjkl;'  ",
+    " zxcvbnm,./   ",
+    "              " ],
+  shift: [
+    "~!@#$%^&*()_+ ",
+    " QWERTYUIOP{}|",
+    " ASDFGHJKL:\"  ",
+    " ZXCVBNM<>?   ",
+    "              " ],
+};
+
+KeyboardLayout.EXPERIMENTAL_ANSI_DVORAK = {
+  hardware: KeyboardLayout.HARDWARE_ANSI,
+  none: [
+    "`1234567890[] ",
+    " '<>pyfgcrl/=\\",
+    " aoeuidhtns-  ",
+    " ;qjkxbmwvz   ",
+    "              " ],
+  shift: [
+    "~!@#$%^&*(){} ",
+    " \"<>PYFGCRL?+|",
+    " AOEUIDHTNS_  ",
+    " :QJKXBMWVZ   ",
+    "              " ],
+};
