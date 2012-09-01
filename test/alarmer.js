@@ -31,8 +31,10 @@ Alarmer.prototype.start = function() {
       // If false is returned, this is not added back into the heap.
       // Actions that want to continue receiving events must return true.
       // Similarly, if the interval is null, this is a one-shot action.
-      if (action.callback(action.name, t) && action.interval_millis != null) {
-        Heap.push(heap, entry[0] + action.interval_millis, action);
+      var dt = t - action._last_time;
+      action._last_time = t;
+      if (action.callback(action.name, t, dt) && action.dt_ms != null) {
+        Heap.push(heap, entry[0] + action.dt_ms, action);
       } else {
         // Save in case we reset later.
         alarmer._dead_actions.push(action);
@@ -65,8 +67,8 @@ Alarmer.prototype.reset = function() {
   // Set all of the intervals up to be their initial state.
   var heap = this._heap;
   for (var i=0, len=heap.length; i<len; ++i) {
-    // Set the schedule to "immediately":
-    heap[i][0] = heap[i][1].initial_delay;
+    heap[i][1]._last_time = 0;
+    heap[i][0] = heap[i][1].t0_ms;
   }
 
   Heap.heapify(heap);
@@ -76,7 +78,7 @@ Alarmer.prototype.reset = function() {
   var len = heap.length;
   for (var i=0, len=dead.length; i<len; ++i) {
     var action = dead[i];
-    Heap.push(heap, action.initial_delay, action);
+    Heap.push(heap, action.t0_ms, action);
   }
   this._dead_actions = [];
 };
@@ -85,28 +87,24 @@ Alarmer.prototype.reset = function() {
 // Args:
 //  name: Name of the action.
 //  callback: a function to call when the deadline is reached. Takes
-//    arguments (name, time) and returns a bool indicating whether further
-//    events should be sent to this action.
-//  interval_millis: number of milliseconds between calls (roughly). If
+//    arguments (name, alarm_time, time_since_last_callback) and returns
+//    a bool indicating whether further events should be sent to this action.
+//  dt_ms: number of milliseconds between calls (roughly). If
 //    this is null, then it will call the callback exactly once and be done.
-//  initial_delay: if specified, the callback will not be called immediately
-//    when the alarmer is started - the first call will be after an initial
-//    delay of interval_millis.  This can be useful for building one-shot
-//    actions, which would set the delay and return "false" on their first
-//    invocation.
-Alarmer.prototype.add = function(
-    name, callback, interval_millis, initial_delay) {
-  initial_delay = initial_delay || 0;
-  if (interval_millis == undefined) interval_millis = null;
-  if (!interval_millis && !initial_delay) {
+//  t0_ms: if specified, the first callback will be delayed by this amount.
+Alarmer.prototype.add = function(name, callback, dt_ms, t0_ms) {
+  t0_ms = t0_ms || 0;
+  if (dt_ms == undefined) dt_ms = null;
+  if (!dt_ms && !t0_ms) {
     throw "You must specify at least one of interval or delay.";
   }
-  var deadline = this.elapsed() + initial_delay;
+  var deadline = this.elapsed() + t0_ms;
   Heap.push(this._heap, deadline, {
     name: name,
     callback: callback,
-    interval_millis: interval_millis,
-    initial_delay: initial_delay,
+    dt_ms: dt_ms,
+    t0_ms: t0_ms,
+    _last_time: 0,
   });
   return true;
 };
