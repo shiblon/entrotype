@@ -2,32 +2,33 @@
 <html>
 <head>
   <style type="text/css">@import "jquery/jquery.svg.css";</style>
-  <script type="text/javascript" src="jquery/jquery-1.8.0.min.js"></script>
-  <script type="text/javascript" src="jquery/jquery.svg.min.js"></script>
+  <script type="text/javascript" src="jquery/jquery-1.8.0.js"></script>
+  <script type="text/javascript" src="heap.js"></script>
+  <script type="text/javascript" src="alarmer.js"></script>
   <script type="text/javascript" src="keyboardlayout.js"></script>
   <script type="text/javascript" src="runrungame.js"></script>
   <script type="text/javascript">
-
-    alarm = new Alarmer();
-    alarm.add("Every Second", function(name, time) {
-        console.log(name, time);
-    }, 1000);
-
-    alarm.add("Every 4/3 second", function(name, time) {
-        console.log(name, time);
-    }, 1333);
-
-    alarm.add("Every 1/10 second", function(name, time) {
-        console.log(name, time);
-    }, 100);
-
     $(document).ready(function() {
-        layout = new KeyboardLayout(KeyboardLayout.ANSI_QWERTY);
+      alarm = new Alarmer();
 
-        var getChar = function() {return layout.getRandomChar("H-");}
+      alarm.add("Every Second", function(name, time) {
+        console.log(svg);
+        if (svg.scene.circle.getAttribute("fill") == "none") {
+          svg.scene.circle.setAttribute("fill", "solid");
+        } else {
+          svg.scene.circle.setAttribute("fill", "none");
+        }
+      }, 1000);
 
-        game = new RunRunGame($("#div_viewport"), getChar);
+      alarm.add("Every 4/3 second", function(name, time) {
+          console.log(name, time);
+      }, 1333);
+
+      alarm.add("Every 1/10 second", function(name, time) {
+          console.log(name, time);
+      }, 100);
     });
+
   </script>
   <style type="text/css">
     #div_viewport {
@@ -36,10 +37,16 @@
       height: 600px;
       width: 800px;
     }
+    #canvas_viewport {
+      height: 600px;
+      width: 800px;
+    }
   </style>
 </head>
 <body>
-  <div id="div_viewport"></div>
+  <div id="div_viewport">
+    <canvas id="canvas_viewport"></canvas>
+  </div>
   <form>
     <input id="btn_start" type="button" value="Start">
   </form>
