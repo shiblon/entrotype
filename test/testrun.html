@@ -9,15 +9,15 @@
   <script type="text/javascript" src="raphael-min.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
-      BouncingBall = function(paper, x, y, r, vx, vy, color) {
+      BouncingBall = function(paper, x, y, r, vx, vy, options) {
         this.paper = paper;
-        this.svg_element = paper.circle(x, y, r);
+        this.svg_circle = paper.circle(x, y, r);
 
         this.bound_w = this.paper.width;
         this.bound_h = this.paper.height;
 
         this.radius = r;
-        this.color = color;
+        this.color = options["color"] || "black";
 
         this.cx = x;
         this.cy = y;
@@ -29,10 +29,13 @@
       };
 
       BouncingBall.prototype.update_svg = function() {
-        this.svg_element.attr("cx", Math.floor(this.cx));
-        this.svg_element.attr("cy", Math.floor(this.cy));
-        this.svg_element.attr("r", Math.floor(this.radius));
-        this.svg_element.attr("fill", this.color);
+        var x = Math.floor(this.cx),
+            y = Math.floor(this.cy),
+            r = Math.floor(this.radius);
+        this.svg_circle.attr("cx", x).
+                        attr("cy", y).
+                        attr("r", r).
+                        attr("fill", this.color);
       };
 
       BouncingBall.prototype.tick = function(dt) {
@@ -100,9 +103,23 @@
 
       alarm.add("motion", function() {
           paper = Raphael("div_viewport");
-          var balls = [
-            new BouncingBall(paper, 40, 50, 10, 100, 200, "red"),
-            new BouncingBall(paper, 80, 20, 20, 250, 180, "blue")];
+          var colors = ["red", "green", "blue", "orange", "pink", "purple"];
+          var balls = [];
+          var num_balls = 250;
+          var radius = 20;
+          for (var i=0; i < num_balls; ++i) {
+            var vx = Math.random() * paper.width/4 + paper.width/4;
+            var vy = Math.random() * paper.height/-17 + paper.height/4;
+            var ball = new BouncingBall(
+              paper,
+              Math.floor(Math.random() * (paper.width - 2 * radius) + radius),
+              Math.floor(Math.random() * (paper.height - 2 * radius) + radius),
+              radius,
+              vx * ((Math.random() > 0.5) ? 1 : -1),
+              vy * ((Math.random() > 0.5) ? 1 : -1),
+              {color: colors[Math.floor(Math.random() * colors.length)]});
+            balls.push(ball);
+          }
           return function(name, elapsed_ms, dt_ms) {
             for (var i=0, len=balls.length; i<len; ++i) {
               balls[i].tick(dt_ms / 1000.0);
@@ -129,8 +146,9 @@
     #div_viewport {
       display: inline-block;
       border: 1px black solid;
-      height: 300px;
-      width: 400px;
+      margin: 1px;
+      height: 400px;
+      width: 500px;
     }
   </style>
 </head>
