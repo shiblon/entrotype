@@ -36,7 +36,10 @@ KeyboardLayout = function(simplifiedLayout) {
   //  The one exception to this is when the modifiers would simple be "-!".
   //  In this case the modifier string can simply be elided, so
   //  ["fF", "HL2"] is the same as ["fF", "HL2-!"].
-  //
+
+  if (!simplifiedLayout) {
+    simplifiedLayout = KeyboardLayout.ANSI_QWERTY;
+  }
 
   // These are all of our values for each class (row, hand, finger, mod).
   this.CLASS_ROW = "BHSNT";

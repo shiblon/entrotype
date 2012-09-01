@@ -2,31 +2,39 @@
 <html>
 <head>
   <style type="text/css">@import "jquery/jquery.svg.css";</style>
-  <script type="text/javascript" src="jquery/jquery-1.8.0.js"></script>
+  <script type="text/javascript" src="jquery/jquery-1.8.1.js"></script>
   <script type="text/javascript" src="heap.js"></script>
   <script type="text/javascript" src="alarmer.js"></script>
   <script type="text/javascript" src="keyboardlayout.js"></script>
-  <script type="text/javascript" src="runrungame.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
       alarm = new Alarmer();
 
       alarm.add("Every Second", function(name, time) {
-        console.log(svg);
-        if (svg.scene.circle.getAttribute("fill") == "none") {
-          svg.scene.circle.setAttribute("fill", "solid");
-        } else {
-          svg.scene.circle.setAttribute("fill", "none");
-        }
+        var circle = $("#circle1");
+        var fill = circle.attr("fill");
+        fill = (fill == "red") ? "blue" : "red";
+        circle.attr("fill", fill);
+        return true;
       }, 1000);
 
       alarm.add("Every 4/3 second", function(name, time) {
-          console.log(name, time);
+        var circle = $("#circle2");
+        var fill = circle.attr("fill");
+        fill = (fill == "green") ? "yellow" : "green";
+        circle.attr("fill", fill);
+        return true;
       }, 1333);
 
-      alarm.add("Every 1/10 second", function(name, time) {
-          console.log(name, time);
-      }, 100);
+      alarm.add("Every 1/2 second", function(name, time) {
+        var circle = $("#circle3");
+        var fill = circle.attr("fill");
+        fill = (fill == "purple") ? "pink" : "purple";
+        circle.attr("fill", fill);
+        return true;
+      }, 500);
+
+      alarm.start();
     });
 
   </script>
@@ -45,7 +53,11 @@
 </head>
 <body>
   <div id="div_viewport">
-    <canvas id="canvas_viewport"></canvas>
+    <svg id="main_svg" width="800" height="600">
+    <circle id="circle1" cx="100" cy="100" r="40" stroke="black" stroke-width="2" fill="red"/>
+    <circle id="circle2" cx="200" cy="300" r="30" stroke="black" stroke-width="2" fill="green"/>
+    <circle id="circle3" cx="150" cy="200" r="20" stroke="black" stroke-width="2" fill="purple"/>
+    </svg>
   </div>
   <form>
     <input id="btn_start" type="button" value="Start">

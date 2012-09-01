@@ -18,20 +18,19 @@ Alarmer.prototype.start = function() {
   var in_interval = false;
   var alarmer = this;
   var heap = this._heap;
-  var heaplen = heap.length;
 
   this._interval = setInterval(function() {
     if (!alarmer._interval || in_interval) return;
     in_interval = true;
 
     var t = alarmer.elapsed();
-    while (alarmer._interval && heaplen > 0 && heap[0][0] <= t) {
+    while (alarmer._interval && heap.length && heap[0][0] <= t) {
       var entry = Heap.pop(heap);
       // If false is returned, this is not added back into the heap.
       // Actions that want to continue receiving events must return true.
-      if (entry[1].callback(entry[1].name, t) {
+      if (entry[1].callback(entry[1].name, t)) {
         entry[0] += entry[1].interval_millis;  // new schedule
-        Heap.push(heap, entry);
+        Heap.push(heap, entry[0], entry[1]);
       }
     }
 
@@ -76,13 +75,11 @@ Alarmer.prototype.reset = function() {
 //    which would set the delay and return "false" on their first invocation.
 Alarmer.prototype.add = function(name, callback, interval_millis, no_instant) {
   var deadline = this.elapsed() + ((no_instant) ? interval_millis : 0);
-  Heap.push(
-      this._heap,
-      [deadline, {
-        name: name,
-        callback: callback,
-        interval_millis: interval_millis,
-      }]);
+  Heap.push(this._heap, deadline, {
+    name: name,
+    callback: callback,
+    interval_millis: interval_millis,
+  });
   return true;
 };
 
