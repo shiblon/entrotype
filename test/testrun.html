@@ -102,14 +102,14 @@
       alarm = new Alarmer();
 
       alarm.add("motion", function() {
-          paper = Raphael("div_viewport");
+          var paper = Raphael("div_viewport");
           var colors = ["red", "green", "blue", "orange", "pink", "purple"];
           var balls = [];
           var num_balls = 250;
           var radius = 20;
           for (var i=0; i < num_balls; ++i) {
             var vx = Math.random() * paper.width/4 + paper.width/4;
-            var vy = Math.random() * paper.height/-17 + paper.height/4;
+            var vy = Math.random() * paper.height/4 + paper.height/4;
             var ball = new BouncingBall(
               paper,
               Math.floor(Math.random() * (paper.width - 2 * radius) + radius),
