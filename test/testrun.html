@@ -8,15 +8,104 @@
   <script type="text/javascript" src="keyboardlayout.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
+      BouncingBall = function(svg_element) {
+        this.svg_element = $(svg_element);
+        this.container = this.svg_element.parent();
+        console.log(this.container);
+        this.bound_w = this.container.width();
+        this.bound_h = this.container.height();
+
+        this.radius = 30.0;
+        this.color = "red";
+
+        this.cx = this.radius;
+        this.cy = this.radius;
+
+        this.vx = 200.0;
+        this.vy = 130.0;
+
+        this.update_svg();
+      };
+
+      BouncingBall.prototype.update_svg = function() {
+        this.svg_element.attr("cx", this.cx);
+        this.svg_element.attr("cy", this.cy);
+        this.svg_element.attr("r", this.radius);
+      };
+
+      BouncingBall.prototype.tick = function(dt) {
+        var n_list = this.new_vals(this.cx, this.cy, this.vx, this.vy, dt);
+        this.cx = n_list[0];
+        this.cy = n_list[1];
+        this.vx = n_list[2];
+        this.vy = n_list[3];
+        this.update_svg();
+      };
+
+      // Returns new x, y, vx, vy.
+      BouncingBall.prototype.new_vals = function(x, y, vx, vy, dt) {
+        var n_x = x + vx * dt,
+            n_y = y + vy * dt;
+        // Detect boundary collisions.
+        // These contain the amount we are past the boundary.
+        var e_t_x = 0,
+            e_t_y = 0;
+        // Find out how much time we would travel out of bounds in either
+        // dimension.
+        if (n_x > this.bound_w - this.radius) {
+          var e_x = n_x - (this.bound_w - this.radius);
+          e_t_x = dt * Math.abs(e_x / (n_x - x));
+        } else if (n_x < this.radius) {
+          var e_x = n_x - this.radius;
+          e_t_x = dt * Math.abs(e_x / (n_x - x));
+        }
+        if (n_y > this.bound_h - this.radius) {
+          var e_y = n_y - (this.bound_h - this.radius);
+          e_t_y = dt * Math.abs(e_y / (n_y - y));
+        } else if (n_y < this.radius) {
+          var e_y = n_y - this.radius;
+          e_t_y = dt * Math.abs(e_y / (n_y - y));
+        }
+        if (e_t_y > 0 || e_t_x > 0) {
+          // A collision occurred in at least one dimension.
+          // We use the one that we hit first (the most time spent out of
+          // bounds). Once we know that, we make a bounce happen by setting
+          // the new dt to the time spent out of bounds, set the position to
+          // the location of the collision, and reverse the appropriate
+          // velocity. We then try again from this new point.
+          if (e_t_x > e_t_y) {
+            var n_dt = dt - e_t_x;
+            return this.new_vals(
+                x + vx * n_dt,
+                y + vy * n_dt,
+                -vx,
+                vy,
+                e_t_x);
+          } else {
+            var n_dt = dt - e_t_y;
+            return this.new_vals(
+                x + vx * n_dt,
+                y + vy * n_dt,
+                vx,
+                -vy,
+                e_t_y);
+          }
+        }
+        return [n_x, n_y, vx, vy];
+      };
+
       alarm = new Alarmer();
 
-      alarm.add("Every Second", function(name, time) {
-        var circle = $("#circle1");
-        var fill = circle.attr("fill");
-        fill = (fill == "red") ? "blue" : "red";
-        circle.attr("fill", fill);
-        return true;
-      }, 1000);
+      ball = new BouncingBall("#circle1");
+
+      alarm.add("motion", function() {
+          var last_time = 0;
+          return function(name, time) {
+            var elapsed = (time - last_time) / 1000.0;
+            ball.tick(elapsed);
+            last_time = time;
+            return true;
+          };}(), 50, 50);
 
       alarm.add("Every 4/3 second", function(name, time) {
         var circle = $("#circle2");
@@ -24,7 +113,7 @@
         fill = (fill == "green") ? "yellow" : "green";
         circle.attr("fill", fill);
         return true;
-      }, 1333);
+      }, 1333, 4000);
 
       alarm.add("Every 1/2 second", function(name, time) {
         var circle = $("#circle3");
@@ -32,9 +121,20 @@
         fill = (fill == "purple") ? "pink" : "purple";
         circle.attr("fill", fill);
         return true;
-      }, 500);
+      }, 500, 4000);
 
-      alarm.start();
+      $("#btn_start").
+        val("Start").
+        click(function(evt) {
+          var target = evt.delegateTarget;
+          if (alarm.running()) {
+            alarm.pause();
+            target.value = "Start";
+          } else {
+            alarm.start();
+            target.value = "Pause";
+          }
+        });
     });
 
   </script>
