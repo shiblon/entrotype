@@ -1,4 +1,9 @@
-BounceGame = function(paper) {
+// Create a bounce game into a Raphael paper object.
+// Arguments:
+//  paper: Raphael paper object.
+//  character_info: a character info object that contains the characters to
+//    use in the game, and that can receive scoring information.
+BounceGame = function(paper, character_info) {
   // TODO: create wall objects that can respond to keyboard events, fade in and
   // out, and turn collisions on and off (will require some changes to the ball
   // collision routines - they'll have to ask an oracle, now).
@@ -6,8 +11,50 @@ BounceGame = function(paper) {
   this.paper = paper;
   this.colors = ["red", "green", "blue", "orange", "pink", "purple"];
   this.num_balls = 4;
-  this.balls = [];
   this.radius = 15;
+
+  var game = this;
+
+  this.alarm.add("motion", function(name, elapsed_ms, dt_ms) {
+    game.tickBalls(dt_ms);
+    return true;
+  }, 50, 50);
+
+  this.alarm.add("boundary", function(name, elapsed_ms, dt_ms) {
+    game.tickBoundaries(dt_ms);
+    return true;
+  }, 100, 100);
+
+  this.reset();
+};
+
+BounceGame.prototype.tickBalls = function(dt_ms) {
+  for (var i=0, len=this.balls.length; i<len; ++i) {
+    this.balls[i].tick(dt_ms / 1000.0);
+  }
+};
+
+BounceGame.prototype.tickBoundaries = function(dt_ms) {
+  for (var i=0, len=this.boundaries.length; i<len; ++i) {
+    this.boundaries[i].tick(dt_ms);
+  }
+};
+
+BounceGame.prototype.start = function() {
+  return this.alarm.start();
+};
+
+BounceGame.prototype.pause = function() {
+  return this.alarm.pause();
+};
+
+BounceGame.prototype.running = function() {
+  return this.alarm.running();
+};
+
+BounceGame.prototype.reset = function() {
+  this.alarm.reset();
+  this.balls = [];
   var r = this.radius;
   for (var i=0; i<this.num_balls; ++i) {
     var vx = Math.random() * this.paper.width/4 + this.paper.width/4;
@@ -24,30 +71,61 @@ BounceGame = function(paper) {
     this.balls.push(ball);
   }
 
-  var game = this;
-  this.alarm.add("motion", function(name, elapsed_ms, dt_ms) {
-    for (var i=0, len=game.balls.length; i<len; ++i) {
-      game.balls[i].tick(dt_ms / 1000.0);
-    }
+  this.boundaries = [
+    new Boundary(3000, 3000), // left
+    new Boundary(3000, 3000), // right
+    new Boundary(3000, 3000), // top
+    new Boundary(3000, 3000), // bottom
+  ];
+};
+
+
+Boundary = function(input_duration_ms, vanished_duration_ms) {
+  this.STATE_IDLE = 0;
+  this.STATE_TICKING = 1;
+  this.STATE_VANISHED = 2;
+  this.STATE_DONE = 3;
+
+  this.DURATIONS = [
+    null,
+    input_duration_ms,
+    vanished_duration_ms,
+    null,
+  ];
+
+  this.reset();
+};
+
+Boundary.prototype.reset = function() {
+  this.state = this.STATE_IDLE;
+  this.chars = [];
+  this.elapsed_ms_in_state = 0;
+};
+
+Boundary.prototype.startVanishing = function(chars, vanish_ms) {
+  if (this.state != this.STATE_IDLE) {
+    throw "Tried to start vanishing from non-idle state " + this.state;
+  }
+  this.state = this.STATE_TICKING;
+};
+
+Boundary.prototype.solid = function() {
+  return this.state < this.STATE_VANISHED;
+};
+
+Boundary.prototype.running = function() {
+  return this.state != this.STATE_DONE && this.state != this.STATE_IDLE;
+};
+
+Boundary.prototype.tick = function(dt_ms) {
+  if (!this.running()) return;
+
+  this.elapsed_ms_in_state += dt_ms;
+  if (this.elapsed_ms_in_state > this.DURATIONS[this.state]) {
+    this.state++;
     return true;
-  }, 50, 50);
-};
-
-BounceGame.prototype.start = function() {
-  return this.alarm.start();
-};
-
-BounceGame.prototype.pause = function() {
-  return this.alarm.pause();
-};
-
-BounceGame.prototype.running = function() {
-  return this.alarm.running();
-};
-
-BounceGame.prototype.reset = function() {
-  // TODO: reset other game state, too?
-  return this.alarm.reset();
+  }
+  return false;
 };
 
 
