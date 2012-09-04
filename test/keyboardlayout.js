@@ -3,45 +3,12 @@ KeyboardLevel = function(title, query) {
   this.query = query;
 }
 
-KeyboardLayout = function(simplifiedLayout) {
-  // Mapping from characters to finger and distance.
-  // Pair: <chars, position> where position has three elements.
-  //  For example, ["fF", "HL2-!"] means
-  //  "f and F are located on the Home row, Left hand, 2nd finger."
-  //  "-!" means the first character is unmodified, the second needs "Shift".
-  //
-  //  The second part of the pair is Row, Hand, Finger, and the values are
-  //  Row: N=Number, T=Top, H=Home, B=Bottom, S=Space
-  //  Hand: L=Left, R=Right
-  //  Finger: 0=Thumb, 1=Index Reach, 2=Index,
-  //          3=Middle, 4=Ring, 5=Small, 6=Small Reach
-  //          where "Reach" means the finger moves left or right of neutral.
-  //  Note that there is no overlap in these values, so you can also specify
-  //  alternates (e.g., the space bar can be used with either hand, so it can
-  //  have a mapping of "SLR0", meaning "space row, left, right, thumb").
-  //
-  //  Modifiers are defined as below:
-  //    -=Empty (no modifier)
-  //    !=Shift
-  //    @=Meta
-  //    ^=Control
-  //    #=Shift-Meta
-  //    $=Shift-Control
-  //    %=Meta-Control
-  //    &=Shift-Meta-Control
-  //  Modifiers must appear in order, and there must be the same number as
-  //  there are characters in the first part of the pair. They can be
-  //  anywhere in the string, but their relative order matters.
-  //
-  //  The one exception to this is when the modifiers would simple be "-!".
-  //  In this case the modifier string can simply be elided, so
-  //  ["fF", "HL2"] is the same as ["fF", "HL2-!"].
-
-  if (!simplifiedLayout) {
-    simplifiedLayout = KeyboardLayout.ANSI_QWERTY;
+KeyboardLayout = function(configuration) {
+  if (!configuration) {
+    configuration = KeyboardLayout.ANSI_QWERTY;
   }
 
-  // These are all of our values for each class (row, hand, finger, mod).
+  // These are all of our query values for each class (row, hand, finger, mod).
   this.CLASS_ROW = "BHSNT";
   this.CLASS_HAND = "LR";
   this.CLASS_FINGER = "0123456";
@@ -66,63 +33,16 @@ KeyboardLayout = function(simplifiedLayout) {
   this._finger_dict = strToSet(this.CLASS_FINGER);
   this._modifier_dict = strToSet(this.CLASS_MODIFIER);
 
-  // Now define a more complete (and verbose) layout from the simplified spec.
-  // This is simply a dictionary, keyed on the character, whose value is the
-  // complete map spec for that character, split into classes, in order of
-  // row, hand, finger, and modifier.
-  //
-  // e.g., "f": ["H", "L", "2", "-"]
-  this._layout = {};
-  for (sli in simplifiedLayout) {
-    var spec = simplifiedLayout[sli];
-    var chars = spec[0];
-    var classes = spec[1];
+  this._layout = this.parseConfiguration(configuration);
 
-    // First find the modifiers, if any.  If none are specified, we use "-"
-    // or "-!", depending on how many characters there are.  It is an error
-    // to not specify modifiers for 3 or more characters.
-    var split_spec = this.splitSpecStr(classes);
-    if (split_spec.modifiers.length == 0) {
-      if (chars.length == 1) {
-        split_spec.modifiers = "-";
-      } else if (chars.length == 2) {
-        split_spec.modifiers = "-!";
-      }
-    }
-
-    if (split_spec.modifiers.length != chars.length) {
-      throw ("Invalid modifiers '" + split_spec.modiiers +
-             "' for char spec '" + chars + "'");
-    }
-
-    char_mod_pairs = [];
-    for (var i = 0; i < chars.length; ++i) {
-      // Create a string with two characters: char and modifier
-      char_mod_pairs.push(chars[i] + split_spec.modifiers[i]);
-    }
-
-    for (cmi in char_mod_pairs) {
-      var cm = char_mod_pairs[cmi];
-      var c = cm[0];
-      var m = cm[1];
-      if (this._layout[c] != undefined) {
-        throw "Repeated character in layout: '" + c + "'";
-      }
-      this._layout[c] = [split_spec.rows,
-                         split_spec.hands,
-                         split_spec.fingers,
-                         m];
-    }
-  }
-
-  // Note that "S0" is a query that has to be used implicitly, pretty much all
+  // Note that <space> is a query that has to be used implicitly, pretty much all
   // the time.  It is treated specially.
   this.levels = this.defineLevels([
       ["Home Row",    ["H2-", "H3-", "H4-", "H56-", "H1-"]],
       ["Top Row",     ["T2-", "T3-", "T4-", "T5-", "T1-", "T6-"]],
       ["Bottom Row",  ["B2-", "B3-", "B4-", "B5-", "B1-", "B6-"]],
       ["Numbers Row", ["N2-", "N3-", "N4-", "N5-", "N1-", "N6-"]],
-      ["Shift Key",   ["H123456!", "T123456!", "B123456!", "N123456!"]]]);
+      ["Shift Key",   ["H!", "T!", "B!", "N!"]]]);
 };
 
 KeyboardLayout.prototype.defineLevels = function(levelSpec) {
@@ -288,165 +208,163 @@ KeyboardLayout.prototype.getRandomChar = function(query) {
   return chars[Math.floor(Math.random() * chars.length)];
 };
 
-// This is a simplified keyboard map using the approach described in
-// KeyboardLayout constructor.
-KeyboardLayout.ANSI_QWERTY = [
-    ["`~", "NL6"],
-    ["1!", "NL5"],
-    ["2@", "NL4"],
-    ["3#", "NL3"],
-    ["4$", "NL2"],
-    ["5%", "NL1"],
-    ["6^", "NR1"],
-    ["7&", "NR2"],
-    ["8*", "NR3"],
-    ["9(", "NR4"],
-    ["0)", "NR5"],
-    ["-_", "NR6"],
-    ["=+", "NR6"],
-    ["qQ", "TL5"],
-    ["wW", "TL4"],
-    ["eE", "TL3"],
-    ["rR", "TL2"],
-    ["tT", "TL1"],
-    ["yY", "TR1"],
-    ["uU", "TR2"],
-    ["iI", "TR3"],
-    ["oO", "TR4"],
-    ["pP", "TR5"],
-    ["[{", "TR6"],
-    ["]}", "TR6"],
-    ["\\|", "TR6"],
-    ["aA", "HL5"],
-    ["sS", "HL4"],
-    ["dD", "HL3"],
-    ["fF", "HL2"],
-    ["gG", "HL1"],
-    ["hH", "HR1"],
-    ["jJ", "HR2"],
-    ["kK", "HR3"],
-    ["lL", "HR4"],
-    [";:", "HR5"],
-    ["'\"", "HR6"],
-    ["zZ", "BL5"],
-    ["xX", "BL4"],
-    ["cC", "BL3"],
-    ["vV", "BL2"],
-    ["bB", "BL1"],
-    ["nN", "BR1"],
-    ["mM", "BR2"],
-    [",<", "BR3"],
-    [".>", "BR4"],
-    ["/?", "BR5"],
-    [" ", "SLR0"]];
+KeyboardLayout.prototype.parseConfiguration = function(configuration) {
+  // A configuration is a dictionary that specified how the keys are
+  // configured on the hardware. There is a key labeled "hardware" that points
+  // to a hard layout.
+  //
+  // Each row of the layout is a list of either . or L or R (for left and right
+  // hands).  It is assumed that the innermost L and R are "1", with numbers
+  // incrementing going outward as described below.
+  //
+  // Numbers represent fingers:
+  // 0   = thumb (currently not used)
+  // 1-2 = index finger (1 is a longer reach)
+  // 3   = middle finger
+  // 4   = ring finger
+  // 5-? = small finger (larger numbers are further away from resting position)
+  // Currently we only go to 6 - reach is reach is reach.
+  //
+  // The numbers always start with the left hand, going down, and progress
+  // to the right hand, going up.
+  //
+  // There are always 5 rows:
+  // - Numbers
+  // - Top
+  // - Home
+  // - Bottom
+  //
+  // The row with the space bar is omitted.
+  //
+  // The rest of the keys in the configuration are named after modifier keys:
+  // none: no modifiers
+  // shift: shift key pressed
+  // meta: meta key pressed
+  // ctrl: control key pressed
+  // Also ctrl-meta, ctrl-shift, meta-shift, ctrl-meta-shift.
+  // Only "none" and "shift" are required.
 
-KeyboardLayout.ANSI_DVORAK = [
-    ["`~", "NL6"],
-    ["1!", "NL5"],
-    ["2@", "NL4"],
-    ["3#", "NL3"],
-    ["4$", "NL2"],
-    ["5%", "NL1"],
-    ["6^", "NR1"],
-    ["7&", "NR2"],
-    ["8*", "NR3"],
-    ["9(", "NR4"],
-    ["0)", "NR5"],
-    ["[{", "NR6"],
-    ["]}", "NR6"],
-    ["'\"", "TL5"],
-    [",<", "TL4"],
-    [".>", "TL3"],
-    ["pP", "TL2"],
-    ["yY", "TL1"],
-    ["fF", "TR1"],
-    ["gG", "TR2"],
-    ["cC", "TR3"],
-    ["rR", "TR4"],
-    ["lL", "TR5"],
-    ["/?", "TR6"],
-    ["=+", "TR6"],
-    ["\\|", "TR6"],
-    ["aA", "HL5"],
-    ["oO", "HL4"],
-    ["eE", "HL3"],
-    ["uU", "HL2"],
-    ["iI", "HL1"],
-    ["dD", "HR1"],
-    ["hH", "HR2"],
-    ["tT", "HR3"],
-    ["nN", "HR4"],
-    ["sS", "HR5"],
-    ["-_", "HR6"],
-    [":;", "BL5"],
-    ["qQ", "BL4"],
-    ["jJ", "BL3"],
-    ["kK", "BL2"],
-    ["xX", "BL1"],
-    ["bB", "BR1"],
-    ["mM", "BR2"],
-    ["wW", "BR3"],
-    ["vV", "BR4"],
-    ["zZ", "BR5"],
-    [" ", "SLR0"]];
+  var min = function(a, b) {return (a>b) ? b : a;};
+  var max_finger = 6;
 
+  var hardware = configuration["hardware"];
+  var fingers = [];
+  for (var r=0, rlen=hardware.length; r<rlen; ++r) {
+    var hand_row = hardware[r];
+    var ri = hand_row.indexOf("R");
+    if (ri < 0) {
+      throw "Missing R in hardware layout spec: " + hand_row;
+    }
+    var finger_row = [];
+    finger_row.length = hand_row.length;
+    for (var c=0, clen=hand_row.length; c<clen; ++c) {
+      if (hand_row[c].toUpperCase() == "L") {
+        finger_row[c] = min(max_finger, ri - c);
+      } else if (hand_row[c].toUpperCase() == "R") {
+        finger_row[c] = min(max_finger, c - ri + 1);
+      } else {
+        finger_row[c] = null;
+      }
+    }
+    fingers[r] = finger_row;
+  }
 
-// EXPERIMENTAL approach
+  var modifier_symbols = {
+    none: "-",
+    shift: "!",
+    meta: "@",
+    ctrl: "^",
+    "meta-shift": "#",
+    "ctrl-shift": "$",
+    "ctrl-meta": "%",
+    "ctrl-meta-shift": "&"
+  };
 
-// TODO: Document this format.
+  var row_symbols = "NTHBS";
+
+  var all_characters = {};
+
+  // Now we compute a long queryable set of characters.
+  for (var mkey in configuration) {
+    if (mkey == "hardware") continue;
+    if (mkey.indexOf("-") != -1) {
+      // Canonicalize the meta key spec.
+      mkey = mkey.toLowerCase().split("-").sort().join("-");
+    }
+    var mod_sym = modifier_symbols[mkey];
+    if (mod_sym == undefined) {
+      throw "Bad modifier key specified: " + mkey;
+    }
+    var config = configuration[mkey];
+    // Go over every character, assigning a row, hand, finger, and meta.
+    for (var ri=0, rlen=config.length; ri<rlen; ++ri) {
+      var row_sym = row_symbols[ri];
+      var hand_row = hardware[ri];
+      var finger_row = fingers[ri];
+      var char_row = config[ri];
+      for (var ci=0, clen=char_row.length; ci<clen; ++ci) {
+        var c = char_row[ci];
+        if (finger_row[ci] == undefined || finger_row[ci] == null) {
+          if (c != " ") {
+            throw "Character '" + c + "' would be ignore by hardware";
+          }
+          continue;
+        }
+        if (all_characters[c] != undefined) {
+          throw "Repeated character '" + c + "' in configuration.";
+        }
+        all_characters[c] = row_sym + hand_row[ci] + finger_row[ci] + mod_sym;
+      }
+    }
+  }
+  return all_characters;
+};
+
 KeyboardLayout.HARDWARE_ANSI = [
-  "6543211234567.",
-  ".5432112345678",
-  ".54321123456..",
-  ".5432112345...",
-  ".....00.......",
+  "LLLLLLRRRRRRR.",
+  ".LLLLLRRRRRRRR",
+  ".LLLLLRRRRRR..",
+  ".LLLLLRRRRR...",
 ];
 
 KeyboardLayout.HARDWARE_ISO = [
-  "6543211234567.",
-  ".543211234567.",
-  ".543211234567.",
-  "65432112345...",
-  ".....00.......",
+  "LLLLLLRRRRRRR.",
+  ".LLLLLRRRRRRR.",
+  ".LLLLLRRRRRRR.",
+  "LLLLLLRRRRR...",
 ];
 
 KeyboardLayout.HARDWARE_JIS = [
-  "6543211234567.",
-  ".543211234567.",
-  ".543211234567.",
-  ".54321123456..",
-  ".....00.......",  // TODO: is this right? It looks like there are more.
+  "LLLLLLRRRRRRR.",
+  ".LLLLLRRRRRRR.",
+  ".LLLLLRRRRRRR.",
+  ".LLLLLRRRRRR..",
 ];
 
-// TODO: write something that creates queries out of this format.
-KeyboardLayout.EXPERIMENTAL_ANSI_QWERTY = {
+KeyboardLayout.ANSI_QWERTY = {
   hardware: KeyboardLayout.HARDWARE_ANSI,
   none: [
     "`1234567890-= ",
     " qwertyuiop[]\\",
     " asdfghjkl;'  ",
-    " zxcvbnm,./   ",
-    "              " ],
+    " zxcvbnm,./   ",],
   shift: [
     "~!@#$%^&*()_+ ",
     " QWERTYUIOP{}|",
     " ASDFGHJKL:\"  ",
-    " ZXCVBNM<>?   ",
-    "              " ],
+    " ZXCVBNM<>?   ",],
 };
 
-KeyboardLayout.EXPERIMENTAL_ANSI_DVORAK = {
+KeyboardLayout.ANSI_DVORAK = {
   hardware: KeyboardLayout.HARDWARE_ANSI,
   none: [
     "`1234567890[] ",
-    " '<>pyfgcrl/=\\",
+    " ',.pyfgcrl/=\\",
     " aoeuidhtns-  ",
-    " ;qjkxbmwvz   ",
-    "              " ],
+    " ;qjkxbmwvz   ",],
   shift: [
     "~!@#$%^&*(){} ",
     " \"<>PYFGCRL?+|",
     " AOEUIDHTNS_  ",
-    " :QJKXBMWVZ   ",
-    "              " ],
+    " :QJKXBMWVZ   ",],
 };
