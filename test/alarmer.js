@@ -1,6 +1,4 @@
 Alarmer = function(granularity_millis) {
-  this._heap = [];
-  this._dead_actions = [];
   this._interval = null;
   if (!granularity_millis) {
     granularity_millis = 10;
@@ -37,7 +35,7 @@ Alarmer.prototype.start = function() {
         Heap.push(heap, entry[0] + action.dt_ms, action);
       } else {
         // Save in case we reset later.
-        alarmer._dead_actions.push(action);
+        alarmer._dead_actions[action.name] = action;
       }
     }
 
@@ -62,25 +60,33 @@ Alarmer.prototype.pause = function() {
 
 Alarmer.prototype.reset = function() {
   this.pause();
+
+  var actions = [];
+  if (this._heap) {
+    for (var i=0, len=this._heap.length; i<len; ++i) {
+      actions.push(this._heap[i][1]);
+    }
+  }
+  if (this._dead_actions) {
+    for (var name in this._dead_actions) {
+      actions.push(this._dead_actions[name]);
+    }
+  }
+
+  // Now reset the heap and the dead list and re-add everything.
+  this._heap = [];
+  this._dead_actions = {};
   this._elapsed = 0;
 
-  // Set all of the intervals up to be their initial state.
-  var heap = this._heap;
-  for (var i=0, len=heap.length; i<len; ++i) {
-    heap[i][1]._last_time = 0;
-    heap[i][0] = heap[i][1].t0_ms;
+  this._names = {};
+  for (var i=0, len=actions.length; i<len; ++i) {
+    var action = actions[i];
+    this.add(action.name,
+             action.callback,
+             action.dt_ms,
+             action.t0_ms,
+             action.start_dead);
   }
-
-  Heap.heapify(heap);
-
-  // Add the dead actions back.
-  var dead = this._dead_actions;
-  var len = heap.length;
-  for (var i=0, len=dead.length; i<len; ++i) {
-    var action = dead[i];
-    Heap.push(heap, action.t0_ms, action);
-  }
-  this._dead_actions = [];
 };
 
 // Add a new action to the alarmer.
@@ -92,21 +98,49 @@ Alarmer.prototype.reset = function() {
 //  dt_ms: number of milliseconds between calls (roughly). If
 //    this is null, then it will call the callback exactly once and be done.
 //  t0_ms: if specified, the first callback will be delayed by this amount.
-Alarmer.prototype.add = function(name, callback, dt_ms, t0_ms) {
+//  start_dead: if true, these start out immediately dead (and will only fire
+//    when first resurrected).
+Alarmer.prototype.add = function(name, callback, dt_ms, t0_ms, start_dead) {
+  if (this._names[name] != undefined) {
+    throw "Action name '" + name + "' used more than once.";
+  }
+  this._names[name] = true;
   t0_ms = t0_ms || 0;
   if (dt_ms == undefined) dt_ms = null;
   if (!dt_ms && !t0_ms) {
     throw "You must specify at least one of interval or delay.";
   }
   var deadline = this.elapsed() + t0_ms;
-  Heap.push(this._heap, deadline, {
+  var action = {
     name: name,
     callback: callback,
     dt_ms: dt_ms,
     t0_ms: t0_ms,
+    start_dead: start_dead || false,
     _last_time: 0,
-  });
+  }
+  if (action.start_dead) {
+    this._dead_actions[name] = action;
+  } else {
+    Heap.push(this._heap, deadline, action);
+  }
   return true;
+};
+
+// Resurrects a dead action (gets it started again).
+// Will delete the action from the dead heap by default.  You can skip deletion
+// by specifying the optional parameter - useful if resurrecting from within a
+// loop over the _dead_actions dictionary.
+Alarmer.prototype.resurrect = function(name, skip_deletion) {
+  skip_deletion = skip_deletion || false;
+  var action = this._dead_actions[name];
+  if (action == undefined) {
+    throw "Action '" + name + "' is not a known dead action - can't resurrect.";
+  }
+  Heap.push(this._heap, this.elapsed() + action.t0_ms, action);
+  if (!skip_deletion) {
+    delete this._dead_actions[name];
+  }
 };
 
 Alarmer.prototype.elapsed = function() {

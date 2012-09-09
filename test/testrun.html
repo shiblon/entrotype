@@ -5,12 +5,31 @@
   <script type="text/javascript" src="jquery/jquery-1.8.1.js"></script>
   <script type="text/javascript" src="heap.js"></script>
   <script type="text/javascript" src="alarmer.js"></script>
+  <script type="text/javascript" src="charinfo.js"></script>
   <script type="text/javascript" src="keyboardlayout.js"></script>
   <script type="text/javascript" src="bouncegame.js"></script>
   <script type="text/javascript" src="raphael-min.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
-      game = new BounceGame(new Raphael("div_viewport"));
+      layout = new KeyboardLayout(KeyboardLayout.ANSI_QWERTY);
+
+      var level_select = $("#select_level");
+      $.each(layout.levels, function(idx, elem) {
+        level_select.append($("<option/>", {
+          text: elem.title,
+          id: "option_" + elem.query,
+          value: elem.query,
+        }));
+      });
+
+      game = new BounceGame(
+        new Raphael("div_viewport"), new CharacterInfo(layout.query("H-")));
+
+      $(document).keypress(function(event) {
+        var ch = String.fromCharCode(event.keyCode);
+        game.on_keypress(ch);
+        event.preventDefault();
+      });
 
       $("#btn_start").
         val("Start").
@@ -29,19 +48,52 @@
   </script>
   <style type="text/css">
     #div_viewport {
-      display: inline-block;
-      border: 1px black solid;
-      margin: 1px;
+      display: block;
+      border: none;
+      margin: 0px;
       height: 400px;
+      width: 500px;
+    }
+    #div_difficulty {
+      display: block;
+      border: none;
+      margin: 0px;
+      height: 20px;
       width: 500px;
     }
   </style>
 </head>
 <body>
-  <div id="div_viewport">
-  </div>
   <form>
+  <div id="div_game">
+    <div id="div_difficulty">
+      <label for="select_layout">Layout:</label>
+      <select id="select_layout" name="Keyboard Layout">
+        <option id="option_ansi_query" value="ansi_qwerty">ANSI QWERTY</option>
+        <option id="option_ansi_dvorak" value="ansi_dvorak">ANSI DVORAK</option>
+      </select>
+      <label for="select_difficulty">Difficulty:</label>
+      <select id="select_difficulty">
+        <option id="option_difficulty_0" value="0">1</option>
+        <option id="option_difficulty_1" value="1">2</option>
+        <option id="option_difficulty_2" value="2">3</option>
+        <option id="option_difficulty_3" value="3">4</option>
+        <option id="option_difficulty_4" value="4">5</option>
+        <option id="option_difficulty_5" value="5">6</option>
+        <option id="option_difficulty_6" value="6">7</option>
+        <option id="option_difficulty_7" value="7">8</option>
+        <option id="option_difficulty_8" value="8">9</option>
+        <option id="option_difficulty_9" value="9">10</option>
+      </select>
+      <label for="select_level">Level:</label>
+      <select id="select_level">
+        <-- To be filled in in JS code -->
+      </select>
+    </div>
+    <div id="div_viewport">
+    </div>
     <input id="btn_start" type="button" value="Start">
+  </div>
   </form>
 </body>
 </html>

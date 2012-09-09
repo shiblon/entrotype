@@ -6,7 +6,7 @@ CharacterInfo = function(chars) {
   this.num_chars = chars.length;
 };
 
-CharacterInfo.prototype.nextChar() {
+CharacterInfo.prototype.next = function() {
   // TODO: Currently just a uniform random draw. This could be improved. Here
   // are a few ideas:
   // - weight mistaken characters more heavily
@@ -16,14 +16,17 @@ CharacterInfo.prototype.nextChar() {
   return this.characters[Math.floor(Math.random() * this.num_chars)];
 };
 
-CharacterInfo.prototype.reportCorrect(char) {
+CharacterInfo.prototype.report_correct = function(char) {
+  console.log("correct", char);
   // TODO: implement this
 };
 
-CharacterInfo.prototype.reportIncorrect(char) {
+CharacterInfo.prototype.report_incorrect = function(expected, actual) {
+  console.log("incorrect: expected", expected, "got", actual);
   // TODO: implement this
 };
 
-CharacterInfo.prototype.reportTimeout(char) {
+CharacterInfo.prototype.report_timeout = function(char) {
+  console.log("timeout", char);
   // TODO: implement this
 };
