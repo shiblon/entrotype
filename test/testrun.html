@@ -50,45 +50,60 @@
     #div_viewport {
       display: block;
       border: none;
-      margin: 0px;
+      margin: 10px;
+      padding: 5px;
       height: 400px;
       width: 500px;
     }
-    #div_difficulty {
+    #div_status {
       display: block;
       border: none;
-      margin: 0px;
-      height: 20px;
+      margin: 10px;
+      padding: 5px;
+      background-color: #ccf;
+      height: 30px;
       width: 500px;
+      border: 1px blue solid;
+    }
+    #div_difficulty {
+      display: none;
+    }
+    #div_information {
+      display: none;
     }
   </style>
 </head>
 <body>
   <form>
   <div id="div_game">
-    <div id="div_difficulty">
-      <label for="select_layout">Layout:</label>
-      <select id="select_layout" name="Keyboard Layout">
-        <option id="option_ansi_query" value="ansi_qwerty">ANSI QWERTY</option>
-        <option id="option_ansi_dvorak" value="ansi_dvorak">ANSI DVORAK</option>
-      </select>
-      <label for="select_difficulty">Difficulty:</label>
-      <select id="select_difficulty">
-        <option id="option_difficulty_0" value="0">1</option>
-        <option id="option_difficulty_1" value="1">2</option>
-        <option id="option_difficulty_2" value="2">3</option>
-        <option id="option_difficulty_3" value="3">4</option>
-        <option id="option_difficulty_4" value="4">5</option>
-        <option id="option_difficulty_5" value="5">6</option>
-        <option id="option_difficulty_6" value="6">7</option>
-        <option id="option_difficulty_7" value="7">8</option>
-        <option id="option_difficulty_8" value="8">9</option>
-        <option id="option_difficulty_9" value="9">10</option>
-      </select>
-      <label for="select_level">Level:</label>
-      <select id="select_level">
-        <-- To be filled in in JS code -->
-      </select>
+    <div id="div_status">
+      <div id="div_difficulty">
+        <label for="select_layout">Layout:</label>
+        <select id="select_layout" name="Keyboard Layout">
+          <option id="option_ansi_query" value="ansi_qwerty">ANSI QWERTY</option>
+          <option id="option_ansi_dvorak" value="ansi_dvorak">ANSI DVORAK</option>
+        </select>
+        <label for="select_difficulty">Difficulty:</label>
+        <select id="select_difficulty">
+          <option id="option_difficulty_0" value="0">1</option>
+          <option id="option_difficulty_1" value="1">2</option>
+          <option id="option_difficulty_2" value="2">3</option>
+          <option id="option_difficulty_3" value="3">4</option>
+          <option id="option_difficulty_4" value="4">5</option>
+          <option id="option_difficulty_5" value="5">6</option>
+          <option id="option_difficulty_6" value="6">7</option>
+          <option id="option_difficulty_7" value="7">8</option>
+          <option id="option_difficulty_8" value="8">9</option>
+          <option id="option_difficulty_9" value="9">10</option>
+        </select>
+        <label for="select_level">Level:</label>
+        <select id="select_level">
+          <-- To be filled in in JS code -->
+        </select>
+      </div>
+      <div id="div_information">
+        Hi there.
+      </div>
     </div>
     <div id="div_viewport">
     </div>

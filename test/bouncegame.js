@@ -258,7 +258,7 @@ BounceGame.prototype.reset_balls = function(boundaryRect) {
 BounceGame.prototype.reset_boundaries = function(rect) {
   var vanish_time = this.vanishing_time();
   var attrs = {
-    color: "lightblue",
+    color: "#ccf",
     input_duration_ms: vanish_time,
     vanish_duration_ms: 2000,
     random_ms: vanish_time * 0.20,  // +/- 20%
