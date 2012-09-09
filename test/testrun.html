@@ -11,19 +11,43 @@
   <script type="text/javascript" src="raphael-min.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
+      var LAYOUTS = {ansi_qwerty: KeyboardLayout.ANSI_QWERTY,
+                     ansi_dvorak: KeyboardLayout.ANSI_DVORAK};
+
       layout = new KeyboardLayout(KeyboardLayout.ANSI_QWERTY);
+      difficulty = 0;
+      level_query = layout.levels[0].query;
+
+      $("#select_layout").change(function(event) {
+        var target = event.delegateTarget;
+        var selected = target.options[target.selectedIndex];
+        layout = new KeyboardLayout(LAYOUTS[selected.value]);
+      });
+
+      $("#select_difficulty").change(function(event) {
+        var target = event.delegateTarget;
+        var selected = target.options[target.selectedIndex];
+        difficulty = selected.value;
+      });
+
+      $("#select_level").change(function(event) {
+        var target = event.delegateTarget;
+        var selected = target.options[target.selectedIndex];
+        level = selected.value;
+      });
 
       var level_select = $("#select_level");
       $.each(layout.levels, function(idx, elem) {
         level_select.append($("<option/>", {
           text: elem.title,
-          id: "option_" + elem.query,
+          id: "option_" + idx,
           value: elem.query,
         }));
       });
 
       game = new BounceGame(
-        new Raphael("div_viewport"), new CharacterInfo(layout.query("H-")));
+        new Raphael("div_viewport"),
+        new CharacterInfo(layout.query(level_query)));
 
       $(document).keypress(function(event) {
         var ch = String.fromCharCode(event.keyCode);
@@ -36,9 +60,22 @@
         click(function(evt) {
           var target = evt.delegateTarget;
           if (game.running()) {
+            $("#div_information").css("display", "none");
+            $("#div_difficulty").css("display", "block");
             game.pause();
             target.value = "Start";
           } else {
+            $("#div_difficulty").css("display", "none");
+            var info = $("#div_information");
+            info.css("display", "block");
+            info.text(
+              "Difficulty " + (+difficulty+1) +
+              "  Level " + level_query +
+              "  Layout " + layout.name()
+            );
+            game.difficulty(difficulty);
+            game.character_info(new CharacterInfo(layout.query(level_query)));
+            game.reset();
             game.start();
             target.value = "Pause";
           }
@@ -66,7 +103,7 @@
       border: 1px blue solid;
     }
     #div_difficulty {
-      display: none;
+      display: visible;
     }
     #div_information {
       display: none;

@@ -7,6 +7,7 @@ KeyboardLayout = function(configuration) {
   if (!configuration) {
     configuration = KeyboardLayout.ANSI_QWERTY;
   }
+  this._configuration = configuration;
 
   // These are all of our query values for each class (row, hand, finger, mod).
   this.CLASS_ROW = "BHSNT";
@@ -33,7 +34,7 @@ KeyboardLayout = function(configuration) {
   this._finger_dict = strToSet(this.CLASS_FINGER);
   this._modifier_dict = strToSet(this.CLASS_MODIFIER);
 
-  this._layout = this.parseConfiguration(configuration);
+  this._layout = this.parseConfiguration(this._configuration);
 
   // Note that <space> is a query that has to be used implicitly, pretty much all
   // the time.  It is treated specially.
@@ -43,6 +44,10 @@ KeyboardLayout = function(configuration) {
       ["Bottom Row",  ["B2-", "B3-", "B4-", "B5-", "B1-", "B6-"]],
       ["Numbers Row", ["N2-", "N3-", "N4-", "N5-", "N1-", "N6-"]],
       ["Shift Key",   ["H!", "T!", "B!", "N!"]]]);
+};
+
+KeyboardLayout.prototype.name = function() {
+  return this._configuration.name;
 };
 
 KeyboardLayout.prototype.defineLevels = function(levelSpec) {
@@ -286,7 +291,7 @@ KeyboardLayout.prototype.parseConfiguration = function(configuration) {
 
   // Now we compute a long queryable set of characters.
   for (var mkey in configuration) {
-    if (mkey == "hardware") continue;
+    if (mkey == "hardware" || mkey == "name") continue;
     if (mkey.indexOf("-") != -1) {
       // Canonicalize the meta key spec.
       mkey = mkey.toLowerCase().split("-").sort().join("-");
@@ -342,6 +347,7 @@ KeyboardLayout.HARDWARE_JIS = [
 ];
 
 KeyboardLayout.ANSI_QWERTY = {
+  name: "ANSI QWERTY",
   hardware: KeyboardLayout.HARDWARE_ANSI,
   none: [
     "`1234567890-= ",
@@ -356,6 +362,7 @@ KeyboardLayout.ANSI_QWERTY = {
 };
 
 KeyboardLayout.ANSI_DVORAK = {
+  name: "ANSI DVORAK",
   hardware: KeyboardLayout.HARDWARE_ANSI,
   none: [
     "`1234567890[] ",

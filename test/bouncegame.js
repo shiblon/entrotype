@@ -8,12 +8,12 @@ BounceGame = function(paper, character_info, difficulty) {
   if (!character_info) {
     throw "Failed to pass character_info to new BounceGame(...).";
   }
-  this.character_info = character_info;
   this.num_balls = 3;
   this.radius = 15;
   this.margin = 50;
   this.colors = ["red", "green", "blue", "orange", "pink", "purple"];
   this._difficulty = difficulty;
+  this._character_info = character_info;
 
   // [simultaneous boundaries, seconds before vanishing, velocity multiplier]
   this.DIFFICULTIES = [
@@ -64,6 +64,13 @@ BounceGame.prototype.velocity_multiplier = function() {
   return this.DIFFICULTIES[this.difficulty()][2];
 };
 
+BounceGame.prototype.character_info = function(cinfo) {
+  if (cinfo != undefined) {
+    this._character_info = cinfo;
+  }
+  return this._character_info;
+};
+
 BounceGame.prototype.difficulty = function(difficulty) {
   if (difficulty != undefined) {
     this._difficulty = difficulty;
@@ -80,7 +87,7 @@ BounceGame.prototype.on_keypress = function(keychar) {
       if (boundary.char() == keychar) {
         boundary.reset();
         this.alarm.resurrect(name);
-        this.character_info.report_correct(keychar);
+        this.character_info().report_correct(keychar);
         return;
       }
     }
@@ -92,7 +99,7 @@ BounceGame.prototype.on_keypress = function(keychar) {
   possible_chars.sort(function(a,b){return b[0]-a[0]});
   console.log(possible_chars);
   var likely_target = possible_chars[0][1];
-  this.character_info.report_incorrect(likely_target, keychar);
+  this.character_info().report_incorrect(likely_target, keychar);
 };
 
 BounceGame.prototype.set_alarms = function() {
@@ -111,9 +118,9 @@ BounceGame.prototype.set_alarms = function() {
 
   var vanish_func = function(name, elapsed_ms, dt_ms) {
     var boundary = game.boundaries[name];
-    boundary.start(game.character_info.next(),
+    boundary.start(game.character_info().next(),
                    function() {
-                     game.character_info.report_timeout(boundary.char());
+                     game.character_info().report_timeout(boundary.char());
                      // Restart everything.
                      boundary.reset();
                      game.alarm.resurrect(name);
@@ -208,6 +215,7 @@ BounceGame.prototype.tick_boundary = function(boundary, dt_ms) {
 };
 
 BounceGame.prototype.start = function() {
+  this.pause();
   return this.alarm.start();
 };
 
