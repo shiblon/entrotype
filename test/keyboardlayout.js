@@ -5,7 +5,7 @@ KeyboardLevel = function(title, query) {
 
 KeyboardLayout = function(configuration) {
   if (!configuration) {
-    configuration = KeyboardLayout.LAYOUTS['ansi_qwerty'];
+    configuration = KeyboardLayout.LAYOUT['ansi_qwerty'];
   }
   this._configuration = configuration;
 
