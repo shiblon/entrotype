@@ -6,18 +6,15 @@
   <script type="text/javascript" src="keyboardlayout.js"></script>
   <script type="text/javascript" src="simplegame.js"></script>
   <script type="text/javascript">
-    layout = new KeyboardLayout(KeyboardLayout.ANSI_QWERTY);
+    layout = new KeyboardLayout();
 
     $(document).ready(function(){
       var level_query = "";
 
-      var LAYOUTS = {ansi_qwerty: KeyboardLayout.ANSI_QWERTY,
-                     ansi_dvorak: KeyboardLayout.ANSI_DVORAK};
-
       $("#select_layout").change(function(event) {
         var target = event.delegateTarget;
         var selected = target.options[target.selectedIndex];
-        layout = new KeyboardLayout(LAYOUTS[selected.value]);
+        layout = new KeyboardLayout(KeyboardLayout.LAYOUT[selected.value]);
       });
 
       var getRandomChar = function() {
@@ -137,7 +134,7 @@
       <form>
         <input id="btn_start" type="button">
         <select id="select_layout" name="Keyboard Layout">
-          <option id="option_ansi_query" value="ansi_qwerty" selected>ANSI QWERTY</option>
+          <option id="option_ansi_qwerty" value="ansi_qwerty" selected>ANSI QWERTY</option>
           <option id="option_ansi_dvorak" value="ansi_dvorak">ANSI DVORAK</option>
         </select>
       </form>

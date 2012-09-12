@@ -5,7 +5,7 @@ KeyboardLevel = function(title, query) {
 
 KeyboardLayout = function(configuration) {
   if (!configuration) {
-    configuration = KeyboardLayout.ANSI_QWERTY;
+    configuration = KeyboardLayout.LAYOUTS['ansi_qwerty'];
   }
   this._configuration = configuration;
 
@@ -325,53 +325,58 @@ KeyboardLayout.prototype.parseConfiguration = function(configuration) {
   return all_characters;
 };
 
-KeyboardLayout.HARDWARE_ANSI = [
-  "LLLLLLRRRRRRR.",
-  ".LLLLLRRRRRRRR",
-  ".LLLLLRRRRRR..",
-  ".LLLLLRRRRR...",
-];
-
-KeyboardLayout.HARDWARE_ISO = [
-  "LLLLLLRRRRRRR.",
-  ".LLLLLRRRRRRR.",
-  ".LLLLLRRRRRRR.",
-  "LLLLLLRRRRR...",
-];
-
-KeyboardLayout.HARDWARE_JIS = [
-  "LLLLLLRRRRRRR.",
-  ".LLLLLRRRRRRR.",
-  ".LLLLLRRRRRRR.",
-  ".LLLLLRRRRRR..",
-];
-
-KeyboardLayout.ANSI_QWERTY = {
-  name: "ANSI QWERTY",
-  hardware: KeyboardLayout.HARDWARE_ANSI,
-  none: [
-    "`1234567890-= ",
-    " qwertyuiop[]\\",
-    " asdfghjkl;'  ",
-    " zxcvbnm,./   ",],
-  shift: [
-    "~!@#$%^&*()_+ ",
-    " QWERTYUIOP{}|",
-    " ASDFGHJKL:\"  ",
-    " ZXCVBNM<>?   ",],
+KeyboardLayout.HARDWARE = {
+  ansi: [
+    "LLLLLLRRRRRRRb",
+    "tLLLLLRRRRRRRR",
+    "cLLLLLRRRRRRee",
+    "sLLLLLRRRRRsss",
+  ],
+  iso: [
+    "LLLLLLRRRRRRRb",
+    "tLLLLLRRRRRRRe",
+    "cLLLLLRRRRRRRe",
+    "LLLLLLRRRRRsss", // shift also on the left
+  ],
+  jis: [
+    "LLLLLLRRRRRRRb",
+    "tLLLLLRRRRRRRe",
+    "cLLLLLRRRRRRRe",
+    "sLLLLLRRRRRRss",
+  ],
 };
 
-KeyboardLayout.ANSI_DVORAK = {
-  name: "ANSI DVORAK",
-  hardware: KeyboardLayout.HARDWARE_ANSI,
-  none: [
-    "`1234567890[] ",
-    " ',.pyfgcrl/=\\",
-    " aoeuidhtns-  ",
-    " ;qjkxbmwvz   ",],
-  shift: [
-    "~!@#$%^&*(){} ",
-    " \"<>PYFGCRL?+|",
-    " AOEUIDHTNS_  ",
-    " :QJKXBMWVZ   ",],
+KeyboardLayout.LAYOUT = {
+  ansi_qwerty: {
+    name: "ANSI QWERTY",
+    hardware: KeyboardLayout.HARDWARE['ansi'],
+    none: [
+      "`1234567890-= ",
+      " qwertyuiop[]\\",
+      " asdfghjkl;'  ",
+      " zxcvbnm,./   ",
+    ],
+    shift: [
+      "~!@#$%^&*()_+ ",
+      " QWERTYUIOP{}|",
+      " ASDFGHJKL:\"  ",
+      " ZXCVBNM<>?   ",
+    ],
+  },
+  ansi_dvorak: {
+    name: "ANSI DVORAK",
+    hardware: KeyboardLayout.HARDWARE['ansi'],
+    none: [
+      "`1234567890[] ",
+      " ',.pyfgcrl/=\\",
+      " aoeuidhtns-  ",
+      " ;qjkxbmwvz   ",
+    ],
+    shift: [
+      "~!@#$%^&*(){} ",
+      " \"<>PYFGCRL?+|",
+      " AOEUIDHTNS_  ",
+      " :QJKXBMWVZ   ",
+    ],
+  },
 };

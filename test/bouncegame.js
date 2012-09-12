@@ -215,6 +215,12 @@ BounceGame.prototype.tick_boundary = function(boundary, dt_ms) {
 };
 
 BounceGame.prototype.start = function() {
+  // TODO:
+  // Add a resume function instead of start.
+  // Use start to also reset.
+  // Allow start to accept a maximum level time, so that the game eventually
+  // ends.
+  // Fix the balls to not come back once they're off screen.
   this.pause();
   return this.alarm.start();
 };
@@ -227,7 +233,6 @@ BounceGame.prototype.reset = function() {
   // Clear off the paper:
   this.paper.clear();
   this.alarm.reset();
-
   // TODO: add a countdown and *then* resurrect these.
   var working_set = this.boundaries_in_play();
   for (var i=0, len=working_set.length; i<len; ++i) {
