@@ -326,23 +326,28 @@ KeyboardLayout.prototype.parseConfiguration = function(configuration) {
 };
 
 KeyboardLayout.HARDWARE = {
+  // Not that all layouts have the bottom row shifted right by one space. This
+  // allows for the common (e.g., not Kinesis) layouts to have their typical
+  // shifting in place and still have room for modifier keys.
+  // If you are specifying a keyboard whose keys are not shifted, that is also
+  // fine. The important thing is that the hardware match with the soft layout.
   ansi: [
     "LLLLLLRRRRRRRb",
     "tLLLLLRRRRRRRR",
     "cLLLLLRRRRRRee",
-    "sLLLLLRRRRRsss",
+    "ssLLLLLRRRRRss",
   ],
   iso: [
     "LLLLLLRRRRRRRb",
     "tLLLLLRRRRRRRe",
     "cLLLLLRRRRRRRe",
-    "LLLLLLRRRRRsss", // shift also on the left
+    "sLLLLLLRRRRRss",
   ],
   jis: [
     "LLLLLLRRRRRRRb",
     "tLLLLLRRRRRRRe",
     "cLLLLLRRRRRRRe",
-    "sLLLLLRRRRRRss",
+    "ssLLLLLRRRRRRs",
   ],
 };
 
@@ -354,13 +359,13 @@ KeyboardLayout.LAYOUT = {
       "`1234567890-= ",
       " qwertyuiop[]\\",
       " asdfghjkl;'  ",
-      " zxcvbnm,./   ",
+      "  zxcvbnm,./  ",
     ],
     shift: [
       "~!@#$%^&*()_+ ",
       " QWERTYUIOP{}|",
       " ASDFGHJKL:\"  ",
-      " ZXCVBNM<>?   ",
+      "  ZXCVBNM<>?  ",
     ],
   },
   ansi_dvorak: {
@@ -370,13 +375,13 @@ KeyboardLayout.LAYOUT = {
       "`1234567890[] ",
       " ',.pyfgcrl/=\\",
       " aoeuidhtns-  ",
-      " ;qjkxbmwvz   ",
+      "  ;qjkxbmwvz  ",
     ],
     shift: [
       "~!@#$%^&*(){} ",
       " \"<>PYFGCRL?+|",
       " AOEUIDHTNS_  ",
-      " :QJKXBMWVZ   ",
+      "  :QJKXBMWVZ  ",
     ],
   },
 };
