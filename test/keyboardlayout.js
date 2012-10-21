@@ -213,6 +213,134 @@ KeyboardLayout.prototype.getRandomChar = function(query) {
   return chars[Math.floor(Math.random() * chars.length)];
 };
 
+KeyboardLayout.prototype.hardwareToPolygons = function(hardware) {
+  function groups() {
+    // Find all keys that are represented by multiple pieces.
+    var group_keys = {};
+    for (var r=0, rlen=hardware.length; r<rlen; ++r) {
+      var row = hardware[r];
+      for (var c=0, clen=row.length; c<clen; ++c) {
+        if (row[c] != "L" && row[c] != "R") {
+          if (group_keys[row[c]] == undefined) {
+            group_keys[row[c]] = [];
+          }
+          // Don't worry about adjacency right now. We'll split groups based on
+          // adjacency later.
+          group_keys[row[c]].push([r, c]);
+        }
+      }
+    }
+    console.log("groups", group_keys);
+    // Now that we have the groups, ignore all 1-element groups, and split up
+    // groups that don't belong together. The end result will be a set of key
+    // coordinates, indexed by row and column, with a unique group number
+    // assigned to each (for multi-piece groups).
+    function find_adjacent(root, possibilities) {
+      if (possibilities.length == 0) {
+        return null;
+      }
+      // Returns a list of adjacent things, and a list of non-adjacent.
+      var adjacent = [];
+      var other = [];
+      for (var i=0, len=possibilities.length; i<len; ++i) {
+        var p = possibilities[i];
+        if (Math.abs(root[0]-p[0]) + Math.abs(root[1]-p[1]) <= 1) {
+          adjacent.push(p);
+        } else {
+          other.push(p);
+        }
+      }
+      if (adjacent.length == 0) {
+        return null;
+      }
+      // Now iterate over all of these and call the function recursively.
+      var sub_adjacent = [];
+      for (var i=0; i<adjacent.length; ++i) {
+        var result = find_adjacent(adjacent[i], other);
+        if (result != null) {
+          sub_adjacent = sub_adjacent.concat(result.adjacent);
+          other = result.other;
+        }
+      }
+      return {
+        adjacent: adjacent.concat(sub_adjacent),
+        other: other
+      };
+    }
+
+    function find_groups(possibilities) {
+      groups = [];
+      while (possibilities.length > 0) {
+        var root = possibilities[0];
+        possibilities = possibilities.slice(1, possibilities.length);
+        result = find_adjacent(root, possibilities);
+        if (result != null) {
+          groups.push([root].concat(result.adjacent));
+          possibilities = result.other;
+        }
+      }
+      return groups;
+    }
+
+    var group_map = {};
+    var group_list = [];
+    for (var name in group_keys) {
+      var groups = find_groups(group_keys[name]);
+      if (groups.length > 0) {
+        for (var g=0; g<groups.length; ++g) {
+          var group = groups[g];
+          var group_index = group_list.length;
+          group_list.push(group);
+          for (var i=0; i<group.length; ++i) {
+            group_map[group[i]] = group_index;
+          }
+        }
+      }
+    }
+    return {
+      map: group_map,
+      list: group_list,
+    };
+  }
+  var group_info = groups();
+  console.log(group_info);
+
+  var max_keys = 0;
+  for (var r=0; r<hardware.length; ++r) {
+    if (hardware[r].length > max_keys) {
+      max_keys = hardware[r].length;
+    }
+  }
+
+  var right_edges = [];
+  var offsets = [1.0, 1.5, 1.8, 1.3];
+  for (var r=0, rlen=hardware.length; r<rlen; ++r) {
+    var row = hardware[r];
+    right_edges[r] = [];
+    var off = offsets[r];
+    right_edges[r][0] = offsets[r];
+    for (var c=1; c<max_keys-1; ++c) {
+      right_edges[r][c] = right_edges[r][c-1] + 1;
+    }
+    right_edges[r][max_keys-1] = max_keys + 0.5;
+  }
+  // Now we have all of the computed edges. From this it is trivial to generate
+  // rectangles.
+  // TODO: use the computed groups to make more complex polygons (e.g., for
+  // vertical enter keys and horizontal groups).
+  var polygons = [];
+  for (var r=0; r<right_edges.length; ++r) {
+    var row = right_edges[r];
+    var last_edge = 0;
+    for (var c=0; c<row.length; ++c) {
+      polygons.push([[last_edge, r], [row[c], r],
+                     [row[c], r+1], [last_edge, r+1]]);
+      last_edge = row[c];
+    }
+  }
+  return polygons;
+};
+
 KeyboardLayout.prototype.parseConfiguration = function(configuration) {
   // A configuration is a dictionary that specified how the keys are
   // configured on the hardware. There is a key labeled "hardware" that points

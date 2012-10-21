@@ -42,6 +42,27 @@
         }));
       });
 
+      var layout_paper = new Raphael("div_keyboard");
+      var layout_scale = 25;
+      var layout_transform = new Raphael.matrix(
+          layout_scale, 0,
+          0, layout_scale, 0, 0);
+      var make_path_string = function(path_coords) {
+        var path_pieces = ["M" + path_coords[0].join(" ")];
+        for (var i=1; i<path_coords.length; ++i) {
+          path_pieces.push("L" + path_coords[i].join(" "));
+        }
+        path_pieces.push("Z");
+        return path_pieces.join("");
+      };
+      var polys = layout.hardwareToPolygons(KeyboardLayout.HARDWARE.ansi);
+      for (var i=0; i<polys.length; ++i) {
+        var path = Raphael.mapPath(
+            make_path_string(polys[i]),
+            layout_transform);
+        layout_paper.path(path);
+      }
+
       game = new BounceGame(
         new Raphael("div_viewport"),
         new CharacterInfo(layout.query(level_query)));
@@ -82,7 +103,15 @@
   </script>
   <style type="text/css">
     #div_viewport {
-      display: block;
+      display: inline-block;
+      border: none;
+      margin: 10px;
+      padding: 5px;
+      height: 400px;
+      width: 500px;
+    }
+    #div_keyboard {
+      display: inline-block;
       border: none;
       margin: 10px;
       padding: 5px;
@@ -140,8 +169,10 @@
       </div>
     </div>
     <div id="div_viewport">
+      <input id="btn_start" type="button" value="Start">
     </div>
-    <input id="btn_start" type="button" value="Start">
+    <div id="div_keyboard">
+    </div>
   </div>
   </form>
 </body>
