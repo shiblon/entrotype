@@ -1,24 +1,132 @@
-<!DOCTYPE html>
+<!DOCTYPE html encoding="utf-8">
 <html>
 <head>
   <style type="text/css">@import "jquery/jquery.svg.css";</style>
-  <script type="text/javascript" src="jquery/jquery-1.8.1.js"></script>
+  <script type="text/javascript" src="js/jquery.min.js"></script>
   <script type="text/javascript" src="heap.js"></script>
   <script type="text/javascript" src="alarmer.js"></script>
   <script type="text/javascript" src="charinfo.js"></script>
-  <script type="text/javascript" src="keyboardlayout.js"></script>
+  <script type="text/javascript" src="js/keyboardlayout.js"></script>
   <script type="text/javascript" src="bouncegame.js"></script>
   <script type="text/javascript" src="raphael-min.js"></script>
   <script type="text/javascript">
+
     $(document).ready(function() {
       layout = new KeyboardLayout();
+
       difficulty = 0;
       level_query = layout.levels[0].query;
+
+      layout_paper = new Raphael("div_keyboard");
+      layout_scale = 25;
+      layout_transform = new Raphael.matrix(
+        layout_scale, 0,
+        0, layout_scale, 0, 0);
+
+      function sgn(x) {
+        return (x < 0) ? -1 : (x > 0) ? 1 : 0;
+      }
+
+      function isLeftTurn(p1, p2, p3) {
+        // If you look at the corner patterns, the following system emerges for left turns:
+        // If the x coordinate changes first, then the sign of the change will
+        // be the opposite of the sign of the y coordinate change.
+        // If the y coordinate changes first, then the signs are equal.
+        // Otherwise, it's a right turn.
+        if (p1[0] != p2[0]) {
+          // x changed first, expect different signs.
+          return sgn(p2[0] - p1[0]) != sgn(p3[1] - p2[1]);
+        }
+        // y changed first, expect similar signs.
+        return sgn(p2[1] - p1[1]) == sgn(p3[0] - p2[0]);
+      }
+
+      function shrunkenEdge(p1, p2, radius) {
+        var dx = p2[0] - p1[0], dy = p2[1] - p1[1];
+        var np1 = p1.slice(0);
+        var np2 = p2.slice(0);
+        if (Math.abs(dx) < 0.0001) {
+          if (np1[1] > np2[1]) {
+            radius = -radius;
+          }
+          np1[1] += radius;
+          np2[1] -= radius;
+        } else {
+          if (np1[0] > np2[0]) {
+            radius = -radius;
+          }
+          np1[0] += radius;
+          np2[0] -= radius;
+        }
+        return {
+          p1: np1,
+          p2: np2,
+        };
+      }
+
+      function drawLayout() {
+        var shrink_radius = 0.1;
+        function make_curve_to(p, leftTurn) {
+          var flag = leftTurn ? '0' : '1';
+          return "A" + shrink_radius + ' ' + shrink_radius + ' 0 0 ' + flag + ' ' + p.join(' ');
+        }
+        function make_path_string(path_coords) {
+          var edge = shrunkenEdge(path_coords[path_coords.length-1], path_coords[0], shrink_radius);
+          var path_pieces = ["M" + edge.p2.join(' ')];
+          for (var i = 0; i < path_coords.length; i++) {
+            var p0 = path_coords[(i-1+path_coords.length) % path_coords.length],
+                p1 = path_coords[i],
+                p2 = path_coords[(i+1) % path_coords.length];
+            var edge = shrunkenEdge(p1, p2, shrink_radius);
+            path_pieces.push(make_curve_to(edge.p1, isLeftTurn(p0, p1, p2)));
+            path_pieces.push("L" + edge.p2.join(' '));
+          }
+          path_pieces.push("Z");
+          return path_pieces.join("");
+        }
+
+        var polys = layout.polygons();
+        var charset = {};
+        var chars = layout.query(level_query);
+        for (var ci in chars) {
+          charset[chars[ci]] = true;
+        }
+        layout_paper.clear();
+        var mods_used_in_chars = {};
+        var mod_paths = {};
+        for (var i in polys) {
+          var poly = polys[i];
+          var pathSpec = Raphael.mapPath(
+              make_path_string(poly.vertices),
+              layout_transform);
+          var path = layout_paper.path(pathSpec);
+          if (poly.mod) {
+            if (!mod_paths[poly.mod]) mod_paths[poly.mod] = [];
+            mod_paths[poly.mod].push(path);
+          }
+          // Check that this key is in our set.
+          for (var mod in layout.MODIFIER_SYMBOLS) {
+            if (poly[mod] && charset[poly[mod]]) {
+              mods_used_in_chars[mod] = true;
+              path.attr("fill", "blue");
+            }
+          }
+        }
+        // Finally, color in the modifier keys in play.
+        for (var m in mods_used_in_chars) {
+          var paths = mod_paths[m];
+          for (var pi in paths) {
+            paths[pi].attr("fill", "red");
+          }
+        }
+      }
+      drawLayout();
 
       $("#select_layout").change(function(event) {
         var target = event.delegateTarget;
         var selected = target.options[target.selectedIndex];
         layout = new KeyboardLayout(KeyboardLayout.LAYOUT[selected.value]);
+        drawLayout();
       });
 
       $("#select_difficulty").change(function(event) {
@@ -31,6 +139,7 @@
         var target = event.delegateTarget;
         var selected = target.options[target.selectedIndex];
         level_query = selected.value;
+        drawLayout();
       });
 
       var level_select = $("#select_level");
@@ -39,29 +148,8 @@
           text: elem.title,
           id: "option_" + idx,
           value: elem.query,
-        }));
+          }));
       });
-
-      var layout_paper = new Raphael("div_keyboard");
-      var layout_scale = 25;
-      var layout_transform = new Raphael.matrix(
-          layout_scale, 0,
-          0, layout_scale, 0, 0);
-      var make_path_string = function(path_coords) {
-        var path_pieces = ["M" + path_coords[0].join(" ")];
-        for (var i=1; i<path_coords.length; ++i) {
-          path_pieces.push("L" + path_coords[i].join(" "));
-        }
-        path_pieces.push("Z");
-        return path_pieces.join("");
-      };
-      var polys = layout.hardwareToPolygons(KeyboardLayout.HARDWARE.ansi);
-      for (var i=0; i<polys.length; ++i) {
-        var path = Raphael.mapPath(
-            make_path_string(polys[i]),
-            layout_transform);
-        layout_paper.path(path);
-      }
 
       game = new BounceGame(
         new Raphael("div_viewport"),
@@ -145,6 +233,8 @@
         <select id="select_layout" name="Keyboard Layout">
           <option id="option_ansi_qwerty" value="ansi_qwerty">ANSI QWERTY</option>
           <option id="option_ansi_dvorak" value="ansi_dvorak">ANSI DVORAK</option>
+          <option id="option_iso_qwerty" value="iso_qwerty">ISO QWERTY</option>
+          <option id="option_iso_dvorak" value="iso_dvorak">ISO DVORAK</option>
         </select>
         <label for="select_difficulty">Difficulty:</label>
         <select id="select_difficulty">

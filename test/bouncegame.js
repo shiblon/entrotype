@@ -97,9 +97,10 @@ BounceGame.prototype.on_keypress = function(keychar) {
   // will be wrong, but probably moreso on harder levels where mistakes could
   // be for any of them anyway.
   possible_chars.sort(function(a,b){return b[0]-a[0]});
-  console.log(possible_chars);
-  var likely_target = possible_chars[0][1];
-  this.character_info().report_incorrect(likely_target, keychar);
+  if (possible_chars.length > 0) {
+    var likely_target = possible_chars[0][1];
+    this.character_info().report_incorrect(likely_target, keychar);
+  }
 };
 
 BounceGame.prototype.set_alarms = function() {

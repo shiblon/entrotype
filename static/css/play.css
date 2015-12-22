@@ -1,0 +1,41 @@
+body {
+  margin: 5px;
+}
+
+div#main {
+  text-align: center;
+}
+
+div.content-container {
+  width: 800px;
+  height: 600px;
+  position: relative;
+  display: inline-block;
+  border: 1px solid gray;
+}
+
+ul.none {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+ul.none li {
+  display: inline-block;
+  border: 1px solid gray;
+  padding: 0.5em;
+}
+
+@media screen and (max-width: 800px) {
+  div.content-container {
+    width: 640px;
+    height: 480px;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  div.content-container {
+    width: 320px;
+    height: 240px;
+  }
+}

@@ -1,0 +1,19 @@
+Levels:
+
+- Static Traits (with examples)
+
+  - query: H-
+  - title: Home Row 5
+  - description: Home Row, all keys, no modifiers
+  - prerequisites: none
+  - natural predecessor: H61-
+  - tests out of levels: [H2-, H3-, H4-, H5-, H16-]
+
+- Per-User Traits
+
+  - performance history
+  - time-weighted performance statistics
+  - competency achieved (or not passed)
+
+
+Proposed Levels: see js/levels.js

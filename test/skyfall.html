@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test Gameloop</title>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/knockout-3.3.0.js"></script>
+    <script src="js/jcanvas.min.js"></script>
+    <script src="js/gameloop.js"></script>
+    <script src="js/game_skyfall.js"></script>
+    <script src="js/keyboardlayout.js"></script>
+    <script src="js/levels.js"></script>
+    <script src="js/skyfall-viewmodel.js"></script>
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+      }
+
+      #_game {
+        display: inline-block;
+        position: absolute;
+        right: 0;
+        vertical-align: top;
+      }
+
+      #_canvas {
+        border: 1px solid black;
+        background-color: white;
+      }
+
+      #_selection {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 100%;
+        background-color: lightgray;
+        padding: 20px;
+        margin: 0px;
+      }
+
+      #_levels {
+        display: inline-block;
+        vertical-align: top;
+        text-align: center;
+        padding-bottom: 8px;
+        position: absolute;
+        width: 400px;
+        height: 100%;
+        overflow: scroll;
+      }
+
+      div .level {
+        display: inline-block;
+        padding: 8px 8px;
+        margin: 8px;
+        background-color: #ccf;
+      }
+
+      div .levels {
+        display: block;
+      }
+
+      .supergroup {
+        border: 1px dashed gray;
+        margin: 10px 0 10px 0;
+        background-color: #aae;
+        font-family: sans-serif;
+      }
+
+      .title-supergroup {
+        font-weight: bold;
+        font-size: 20pt;
+        text-align: left;
+      }
+
+      .title-group {
+        text-align: center;
+        font-weight: bold;
+        font-size: 18pt;
+        color: gray;
+        padding: 8px;
+      }
+
+      .review-group {
+        border: 1px solid gray;
+        padding: 8px 8px;
+        font-size: 20pt;
+        background-color: #aea;
+        margin: 10px;
+      }
+
+      .review-supergroup {
+        border: 1px solid gray;
+        padding: 8px 8px;
+        font-size: 20pt;
+        background-color: #def;
+      }
+    </style>
+
+    <script>
+      $(document).ready(function() {
+        var layout = new KeyboardLayout();
+        var viewModel = new LevelViewModel(layout, LEVEL_GROUPS);
+        ko.applyBindings(viewModel);
+
+        function startGame() {
+          var hits = {};
+          var misses = {};
+          var lapses = {};
+          var nHits = 0;
+          var nMisses = 0;
+          var nLapses = 0;
+
+          var NUM_TO_TEST = Math.max(20, Math.min(60, viewModel.keySet().length));
+
+          window._game_ = skyFallBigBang('_canvas', NUM_TO_TEST, viewModel.randomChar, {
+              onhit: function(c) {
+                hits[c] = (hits[c] || 0) + 1;
+                nHits++;
+              },
+              onmiss: function(c, typed) {
+                misses[c] = (misses[c] || 0) + 1;
+                nMisses++;
+              },
+              onlapse: function(c) {
+                lapses[c] = (lapses[c] || 0) + 1;
+                nLapses++;
+              },
+              onstop: function() {
+                console.debug("hits", hits);
+                console.debug("misses", misses);
+                console.debug("lapses", lapses);
+
+                $("#_score").html(
+                  "Hits: " + nHits + "  " +
+                  "Misses: " + nMisses + "  " +
+                  "Lapses: " + nLapses);
+              },
+              onkey: function(c) {
+                console.debug("key", c);
+              },
+          });
+          window._game_.start();
+        }
+
+        function startCountdown() {
+          var bb = countdownBigBang('_canvas', 3, {
+            onstop: startGame,
+          });
+          bb.start();
+        }
+
+        window.start = startCountdown;
+      });
+    </script>
+  </head>
+  <body>
+    <div id="_selection">
+    <div id="_levels"></div>
+    </div>
+    <div id="_game">
+      <canvas id="_canvas" width="640" height="480">
+      </canvas>
+      <div id="_score">
+      </div>
+      <button id="startbutton" onclick="start()">Start</button>
+      <span id="query_selection" data-bind="text: query"></span>
+    </div>
+    <div id="_levels">
+      <div data-bind="foreach: config">
+        <div class="supergroup">
+          <div class="title-supergroup" data-bind="text: title"></div>
+          <!-- ko foreach: groups -->
+          <div class="group">
+            <div class="title-group" data-bind="text: title"></div>
+            <!-- ko foreach: levels -->
+            <div class="level" data-bind="text: title, click: select"></div>
+            <!-- /ko -->
+            <div class="review-group">
+              Review <span data-bind="text: title, click: select"></span>
+            </div>
+          </div>
+          <!-- /ko -->
+          <div class="review-supergroup">
+            Review <span data-bind="text: title, click: select"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
