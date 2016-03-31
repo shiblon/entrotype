@@ -1,9 +1,10 @@
-<!DOCTYPE "html">
-<html>
+<!doctype html>
+<html ng-app="entrotypeApp">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="css/play.css" />
     <script src="js/angular.min.js"></script>
+    <script src="js/angular-route.min.js"></script>
     <script src="js/jquery.min.js"></script>
     <script src="js/jcanvas.min.js"></script>
     <script src="js/gameloop.js"></script>
@@ -12,11 +13,14 @@
     <script src="js/skyfall.js"></script>
     <script src="js/gamescreen.js"></script>
     <script src="js/singlekeyscreen.js"></script>
+    <script src="js/levels.js"></script>
     <script src="js/kblayout.js"></script>
     <script src="js/keystats.js"></script>
     <script src="js/raphael-min.js"></script>
     <script src="js/kbsvg.js"></script>
     <script src="js/kbdrawstats.js"></script>
+    <script src="js/app-controller.js"></script>
+    <script src="js/app.js"></script>
     <script>
       $(function() {
         "strict";
@@ -48,45 +52,12 @@
           gs.start();
         }
 
-        function showContainer(name) {
-          $('.content-container').hide();
-          if (name != null) {
-            $('#' + name + '-container').show();
-          }
-        }
-
-        showContainer('game');
-        startGame();
+        //startGame();
       });
     </script>
-    <style>
-      /* Initial style - don't show anything. */
-      div.content-container {
-        display: none;
-      }
-    </style>
   </head>
   <body>
-    <div id="main">
-      <div id="game-container" class="content-container">
-      </div>
-      <div id="title-container" class="content-container">
-        <div style="padding: 2em; font-size: 3em;">
-          <p>EntroType</p>
-          <ul class="none">
-            <li>Missions</li>
-            <li>Free Play</li>
-          </ul>
-        </div>
-      </div>
-      <div id="difficulty-container" class="content-container">
-        <p>Select Difficulty</p>
-        <ul class="none">
-          <li>Easy</li>
-          <li>Medium</li>
-          <li>Hard</li>
-        </ul>
-      </div>
+    <div id="main" ng-view>
     </div>
   </body>
 </html>

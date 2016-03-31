@@ -1,4 +1,7 @@
-var LEVEL_GROUPS = [
+(function($, undefined){
+"strict";
+
+LEVEL_GROUPS = [
   { name: 'homerow',
     title: 'Home Row',
     review: 'H!-',
@@ -126,7 +129,7 @@ var LEVEL_GROUPS = [
         review: 'B-',
       },
       { name: 'shift',
-        title: 'Shift',
+        title: 'Shifted',
         levels: [
           { title: 'Letters',
             desc: 'The bottom row: using the shift key to get capital letters.',
@@ -175,7 +178,7 @@ var LEVEL_GROUPS = [
         ],
         review: 'N-',
       },
-      { name: 'shifted',
+      { name: 'shift',
         title: 'Shifted',
         levels: [
           { title: 'Index',
@@ -208,3 +211,18 @@ var LEVEL_GROUPS = [
     ],
   },
 ];
+
+LEVEL_GROUPS.push(function() {
+  var reviews = [];
+  $.each(LEVEL_GROUPS, function(_, supergroup) {
+    reviews.push(supergroup.review);
+  });
+  return {
+    name: "all",
+    title: "All Skills",
+    review: reviews.join(","),
+    groups: [],
+  };
+}());
+
+}($));
