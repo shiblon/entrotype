@@ -17,7 +17,7 @@ entrotypeApp.config([
       .when('/difficulty', {
         templateUrl: 'partials/difficulty.html',
       })
-      .when('/game/:query', {
+      .when('/game', {
         templateUrl: 'partials/game.html',
         controller: 'GameCtrl',
       })

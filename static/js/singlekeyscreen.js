@@ -47,9 +47,21 @@ SingleKeyGameScreen = function(parent, makeGame, gameConfig) {
   .css({
     position: 'absolute',
     fontSize: '3em',
-    height: '50%',
+    height: '25%',
     width: '100%',
     top: 0,
+    left: 0,
+  });
+
+  // This can be added to from the outside.
+  var navDiv = this.navDiv = $('<div>')
+  .attr('id', 's-done-nav')
+  .css({
+    position: 'absolute',
+    fontSize: '2em',
+    height: '25%',
+    width: '100%',
+    bottom: 0,
     left: 0,
   });
 
@@ -59,7 +71,7 @@ SingleKeyGameScreen = function(parent, makeGame, gameConfig) {
     position: 'absolute',
     height: '50%',
     width: '50%',
-    bottom: 0,
+    bottom: '25%',
     left: 0,
     boxSizing: 'border-box', // include margin/padding in width/height.
     padding: '2%',
@@ -71,7 +83,7 @@ SingleKeyGameScreen = function(parent, makeGame, gameConfig) {
     position: 'absolute',
     height: '50%',
     width: '50%',
-    bottom: 0,
+    bottom: '25%',
     right: 0,
     boxSizing: 'border-box', // include margin/padding in width/height.
     padding: '2%',
@@ -79,6 +91,7 @@ SingleKeyGameScreen = function(parent, makeGame, gameConfig) {
 
   this._doneDiv
   .append(summaryDiv)
+  .append(navDiv)
   .append(noneDiv)
   .append(shiftDiv);
 };

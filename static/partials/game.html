@@ -1,2 +1,7 @@
 <div id="game-container" class="content-container">
 </div>
+<div id="game-done-nav" class="no-display">
+  <div ng-repeat="nav in nextPlaces" class="nav-el">
+    <span ng-click="nav.click()">{{nav.text}}</span>
+  </div>
+</div>

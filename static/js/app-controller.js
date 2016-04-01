@@ -1,23 +1,28 @@
 var entrotypeControllers = angular.module('entrotypeControllers', []);
 
-entrotypeControllers.controller('FreeplayListCtrl', ['$scope', '$location', function($scope, $location) {
-  // Deep copy.
-  $scope.levelConfig = JSON.parse(JSON.stringify(LEVEL_GROUPS));
+entrotypeControllers.controller('ParentCtrl', ['$scope', function($scope) {
+  var query = null;
 
-  $scope.levelSelect = function(level) {
-    $location.path('/game/' + level.query);
-  };
+  $scope.levels = KB_LEVELS;
+  $scope.layout = new KeyboardLayout('ansi-qwerty');
+}]);
 
-  $scope.reviewSelect = function(group) {
-    $location.path('/game/' + group.review);
+entrotypeControllers.controller('FreeplayListCtrl', ['$scope', '$location', '$route', function($scope, $location, $route) {
+  $scope.levelSelect = function(groupOrLevel) {
+    // A level will have a query parameter. A group contaning levels (or
+    // other groups) will have a review parameter.
+    // TODO: figure out why simplifying a simple query doesn't work properly.
+    //var query = $scope.layout.simplifyQuery(groupOrLevel.query());
+    var query = groupOrLevel.query();
+    $location.path('/game').search('q', query);
   };
 }]);
 
-entrotypeControllers.controller('GameCtrl', ['$scope', '$routeParams', function($scope, $routeParams) {
-  var layout = new KeyboardLayout(KeyboardLayout.LAYOUT.ansi_qwerty);
-
+entrotypeControllers.controller('GameCtrl', ['$scope', '$route', '$routeParams', '$location', function($scope, $route, $routeParams, $location) {
+  console.log($scope);
   function startGame(query) {
-    var keySet = layout.query(query);
+    console.log("got query " + query);
+    var keySet = $scope.layout.query(query);
 
     function makeSkyFall(parent, config) {
       return new SkyFall(parent, function() {
@@ -33,14 +38,26 @@ entrotypeControllers.controller('GameCtrl', ['$scope', '$routeParams', function(
       num: 1,
       countdownSeconds: 0,
       onstop: function() {
-        draw_kb_stats(gs.noneDiv, layout, gs.stats, 'none');
-        draw_kb_stats(gs.shiftDiv, layout, gs.stats, 'shift');
+        $scope.nextPlaces = [
+          { text: 'Again',
+            click: function() { $route.reload() },
+          },
+          { text: 'Levels',
+            click: function() { $location.path("/levels") },
+          },
+          { text: 'Home',
+            click: function() { $location.path("/") },
+          },
+        ];
+        draw_kb_stats(gs.noneDiv, $scope.layout, gs.stats, 'none');
+        draw_kb_stats(gs.shiftDiv, $scope.layout, gs.stats, 'shift');
+        $scope.$apply();
+        gs.navDiv.append($('#game-done-nav').removeClass('no-display'));
       },
     });
 
     gs.start();
   }
 
-  console.log("hey there " + $routeParams.query);
-  startGame($routeParams.query);
+  startGame($routeParams.q);
 }]);

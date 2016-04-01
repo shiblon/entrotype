@@ -1,228 +1,101 @@
-(function($, undefined){
+(function(undefined){
 "strict";
 
-LEVEL_GROUPS = [
-  { name: 'homerow',
-    title: 'Home Row',
-    review: 'H!-',
-    groups: [
-      { name: 'basic',
-        title: 'Basic',
-        levels: [
-          { title: 'Index',
-            desc: 'The home row: the keys under your index fingers.',
-            query: 'H2-',
-          },
-          { title: 'Middle',
-            desc: 'The home row: the keys under your middle fingers.',
-            query: 'H3-',
-          },
-          { title: 'Ring',
-            desc: 'The home row: the keys under your ring fingers.',
-            query: 'H4-',
-          },
-          { title: 'Pinky',
-            desc: 'The home row: the keys under your pinky fingers.',
-            query: 'H5-',
-          },
-          { title: 'Reach',
-            desc: 'The home row: letters and symbols you need to reach for.',
-            query: 'H16-',
-          },
-        ],
-        review: 'H-',
-      },
-      { name: 'shift',
-        title: 'Shifted',
-        levels: [
-          { title: 'Letters',
-            desc: 'The home row: using the shift key to get capital letters.',
-            query: 'HL!,HR1234!',
-          },
-          { title: 'Symbols',
-            desc: 'The home row: using the shift key to get new symbols.',
-            query: 'HR56!',
-          },
-        ],
-        review: 'H!',
-      },
-    ],
-  },
-  { name: 'toprow',
-    title: 'Top Row',
-    review: 'T!-',
-    groups: [
-      { name: 'basic',
-        title: 'Basic',
-        levels: [
-          { title: 'Index',
-            desc: 'The top row: index fingers.',
-            query: 'T2-',
-          },
-          { title: 'Middle',
-            desc: 'The top row: middle fingers.',
-            query: 'T3-',
-          },
-          { title: 'Ring',
-            desc: 'The top row: ring fingers.',
-            query: 'T4-',
-          },
-          { title: 'Pinky',
-            desc: 'The top row: pinky fingers.',
-            query: 'T5-',
-          },
-          { title: 'Letter Reach',
-            desc: 'The top row: letters to reach for.',
-            query: 'T1-',
-          },
-          { title: 'Symbol Reach',
-            desc: 'The top row: symbols to reach for.',
-            query: 'T6-',
-          },
-        ],
-        review: 'T-',
-      },
-      { name: 'shift',
-        title: 'Shifted',
-        levels: [
-          { title: 'Letters',
-            desc: 'The top row: using the shift key to get capital letters.',
-            query: 'TL!,TR12345!',
-          },
-          { title: 'Symbols',
-            desc: 'The top row: using the shift key to get new symbols.',
-            query: 'TR6!',
-          },
-        ],
-        review: 'T!',
-      },
-    ],
-  },
-  { name: 'bottomrow',
-    title: 'Bottom Row',
-    review: 'B!-',
-    groups: [
-      { name: 'basic',
-        title: 'Basic',
-        levels: [
-          { title: 'Index',
-            desc: 'The bottom row: index fingers.',
-            query: 'B2-',
-          },
-          { title: 'Middle',
-            desc: 'The bottom row: middle fingers.',
-            query: 'B3-',
-          },
-          { title: 'Ring',
-            desc: 'The bottom row: ring fingers.',
-            query: 'B4-',
-          },
-          { title: 'Pinky',
-            desc: 'The bottom row: pinky fingers.',
-            query: 'B5-',
-          },
-          { title: 'Reach',
-            desc: 'The bottom row: letters to reach for.',
-            query: 'B16-',
-          },
-        ],
-        review: 'B-',
-      },
-      { name: 'shift',
-        title: 'Shifted',
-        levels: [
-          { title: 'Letters',
-            desc: 'The bottom row: using the shift key to get capital letters.',
-            query: 'BL!,BR12!',
-          },
-          { title: 'Symbols',
-            desc: 'The bottom row: using the shift key to get new symbols.',
-            query: 'BR3456!',
-          },
-        ],
-        review: 'B!',
-      },
-    ],
-  },
-  { name: 'numberrow',
-    title: 'Number Row',
-    review: 'N!-',
-    groups: [
-      { name: 'basic',
-        title: 'Basic',
-        levels: [
-          { title: 'Index',
-            desc: 'The number row: index fingers.',
-            query: 'N2-',
-          },
-          { title: 'Middle',
-            desc: 'The number row: middle fingers.',
-            query: 'N3-',
-          },
-          { title: 'Ring',
-            desc: 'The number row: ring fingers.',
-            query: 'N4-',
-          },
-          { title: 'Pinky',
-            desc: 'The number row: pinky fingers.',
-            query: 'N5-',
-          },
-          { title: 'Number Reach',
-            desc: 'The number row: numbers to reach for.',
-            query: 'N1-',
-          },
-          { title: 'Symbol Reach',
-            desc: 'The number row: symbols to reach for.',
-            query: 'N6-',
-          },
-        ],
-        review: 'N-',
-      },
-      { name: 'shift',
-        title: 'Shifted',
-        levels: [
-          { title: 'Index',
-            desc: 'The number row shifted: index fingers.',
-            query: 'N2!',
-          },
-          { title: 'Middle',
-            desc: 'The number row shifted: middle fingers.',
-            query: 'N3!',
-          },
-          { title: 'Ring',
-            desc: 'The number row shifted: ring fingers.',
-            query: 'N4!',
-          },
-          { title: 'Pinky',
-            desc: 'The number row shifted: pinky fingers.',
-            query: 'N5!',
-          },
-          { title: 'Symbol Reach I',
-            desc: 'The number row shifted: symbols to reach for.',
-            query: 'N1!',
-          },
-          { title: 'Symbol Reach II',
-            desc: 'The number row shifted: more symbols to reach for.',
-            query: 'N6!',
-          },
-        ],
-        review: 'N!',
-      },
-    ],
-  },
-];
+function Level(title, query, description) {
+  this._title = title;
+  this._query = query;
+  this._description = description;
+}
 
-LEVEL_GROUPS.push(function() {
-  var reviews = [];
-  $.each(LEVEL_GROUPS, function(_, supergroup) {
-    reviews.push(supergroup.review);
-  });
-  return {
-    name: "all",
-    title: "All Skills",
-    review: reviews.join(","),
-    groups: [],
-  };
+Level.prototype.title = function() { return this._title };
+Level.prototype.query = function() { return this._query };
+Level.prototype.description = function() { return this._description };
+
+function Group(name, title, children) {
+  this._name = name;
+  this._title = title;
+  this._children = children;
+}
+
+Group.prototype.name = function() { return this._name };
+Group.prototype.title = function() { return this._title };
+Group.prototype.children = function() { return this._children };
+Group.prototype.query = function() {
+  // Recursively add all of the queries together.
+  var queries = [];
+  for (var i=0, len=this._children.length; i<len; i++) {
+    queries.push(this._children[i].query());
+  }
+  return queries.join(",");
+};
+
+function KBLevels(layout) {
+  this._root = new Group('all', 'All Skills', [
+    new Group('homerow', 'Home Row', [
+      new Group('basic', 'Basic', [
+        new Level('Index', 'H2-', 'The home row: the keys under your index fingers.'),
+        new Level('Middle', 'H3-', 'The home row: the keys under your middle fingers.'),
+        new Level('Ring', 'H4-', 'The home row: the keys under your ring fingers.'),
+        new Level('Pinky', 'H5-', 'The home row: the keys under your pinky fingers.'),
+        new Level('Reach', 'H16-', 'The home row: letters and symbols you need to reach for.'),
+      ]),
+      new Group('shift', 'Shifted', [
+        new Level('Letters', 'HL!,HR1234!', 'The home row: using the shift key to get capital letters.'),
+        new Level('Symbols', 'HR56!', 'The home row: using the shift key to get new symbols.'),
+      ]),
+    ]),
+    new Group('toprow', 'Top Row', [
+      new Group('basic', 'Basic', [
+        new Level('Index', 'T2-', 'The top row: index fingers.'),
+        new Level('Middle', 'T3-', 'The top row: middle fingers.'),
+        new Level('Ring', 'T4-', 'The top row: ring fingers.'),
+        new Level('Pinky', 'T5-', 'The top row: pinky fingers.'),
+        new Level('Letter Reach', 'T1-', 'The top row: letters to reach for.'),
+        new Level('Symbol Reach', 'T6-', 'The top row: symbols to reach for.'),
+      ]),
+      new Group('shift', 'Shifted', [
+        new Level('Letters', 'TL!,TR12345!', 'The top row: using the shift key to get capital letters.'),
+        new Level('Symbols', 'TR6!', 'The top row: using the shift key to get new symbols.'),
+      ]),
+    ]),
+    new Group('bottomrow', 'Bottom Row', [
+      new Group('basic', 'Basic', [
+        new Level('Index', 'B2-', 'The bottom row: index fingers.'),
+        new Level('Middle', 'B3-', 'The bottom row: middle fingers.'),
+        new Level('Ring', 'B4-', 'The bottom row: ring fingers.'),
+        new Level('Pinky', 'B5-', 'The bottom row: pinky fingers.'),
+        new Level('Reach', 'B16-', 'The bottom row: letters to reach for.'),
+      ]),
+      new Group('shift', 'Shifted', [
+        new Level('Letters', 'BL!,BR12!', 'The bottom row: using the shift key to get capital letters.'),
+        new Level('Symbols', 'BR3456!', 'The bottom row: using the shift key to get new symbols.'),
+      ]),
+    ]),
+    new Group('numberrow', 'Number Row', [
+      new Group('basic', 'Basic', [
+        new Level('Index', 'N2-', 'The number row: index fingers.'),
+        new Level('Middle', 'N3-', 'The number row: middle fingers.'),
+        new Level('Ring', 'N4-', 'The number row: ring fingers.'),
+        new Level('Pinky', 'N5-', 'The number row: pinky fingers.'),
+        new Level('Number Reach', 'N1-', 'The number row: numbers to reach for.'),
+        new Level('Symbol Reach', 'N6-', 'The number row: symbols to reach for.'),
+      ]),
+      new Group('shift', 'Shifted', [
+        new Level('Index', 'N2!', 'The number row shifted: index fingers.'),
+        new Level('Middle', 'N3!', 'The number row shifted: middle fingers.'),
+        new Level('Ring', 'N4!', 'The number row shifted: ring fingers.'),
+        new Level('Pinky', 'N5!', 'The number row shifted: pinky fingers.'),
+        new Level('Symbol Reach I', 'N1!', 'The number row shifted: symbols to reach for.'),
+        new Level('Symbol Reach II', 'N6!', 'The number row shifted: more symbols to reach for.'),
+      ]),
+    ]),
+  ]);
+}
+
+KBLevels.prototype.root = function() {
+  return this._root;
+}
+
+KB_LEVELS = new KBLevels();
+
 }());
-
-}($));

@@ -22,41 +22,9 @@
     <script src="js/app-controller.js"></script>
     <script src="js/app.js"></script>
     <script>
-      $(function() {
-        "strict";
-
-        var layout = new KeyboardLayout(KeyboardLayout.LAYOUT.ansi_qwerty);
-
-        function startGame() {
-          var keySet = layout.query('');
-
-          function makeSkyFall(parent, config) {
-            return new SkyFall(parent, function() {
-              var r = Math.floor(Math.random() * keySet.length);
-              return keySet[r];
-            }, config);
-          }
-
-          var gameParent = $('#game-container');
-
-          gameParent.empty();
-          var gs = new SingleKeyGameScreen(gameParent, makeSkyFall, {
-            num: 1,
-            countdownSeconds: 0,
-            onstop: function() {
-              draw_kb_stats(gs.noneDiv, layout, gs.stats, 'none');
-              draw_kb_stats(gs.shiftDiv, layout, gs.stats, 'shift');
-            },
-          });
-
-          gs.start();
-        }
-
-        //startGame();
-      });
     </script>
   </head>
-  <body>
+  <body ng-controller="ParentCtrl">
     <div id="main" ng-view>
     </div>
   </body>

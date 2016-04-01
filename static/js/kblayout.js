@@ -31,6 +31,12 @@ KeyRect.prototype.toString = function() {
 KeyboardLayout = function(configuration) {
   if (!configuration) {
     configuration = KeyboardLayout.LAYOUT.ansi_qwerty;
+  } else if (typeof configuration === "string") {
+    cstr = configuration;
+    configuration = KeyboardLayout.LAYOUT[cstr.toLowerCase().replace(/-/g, "_")];
+    if (configuration == null) {
+      throw "Unknown configuration " + cstr;
+    }
   }
   this._configuration = configuration;
 
@@ -206,6 +212,9 @@ KeyboardLayout.prototype.flattenQuery = function(qlist) {
 // It will favor readability over minimalism, grouping things by modifier, row,
 // hand, and finger.
 KeyboardLayout.prototype.simplifyQuery = function(qlist) {
+  if (typeof qlist === "string") {
+    qlist = [qlist];
+  }
   qlist = this.flattenQuery(qlist);
   var canonical = this.canonicalizedQuery(qlist);
   var specs = [];

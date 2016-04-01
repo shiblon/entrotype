@@ -74,6 +74,17 @@ div .level {
   background-color: #def;
 }
 
+.no-display {
+  display: none;
+}
+
+.nav-el {
+  display: inline-block;
+  padding: 5px 10px;
+  margin: 5px;
+  border: 1px solid #cee;
+}
+
 @media screen and (max-width: 800px) {
   div.content-container {
     width: 640px;
