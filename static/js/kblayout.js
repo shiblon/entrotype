@@ -191,14 +191,10 @@ KeyboardLayout.prototype.defineLevels = function(levelSpec) {
 };
 
 // Takes a list of queries (or a string), and produces a list of queries
-// without any comma-delimited strings among them.
+// without any comma-delimited strings among them. Always returns a list.
 KeyboardLayout.prototype.flattenQuery = function(qlist) {
   if (typeof qlist == 'string' || qlist instanceof String) {
-    qlist = qlist.split(/\s*,\s*/);
-    if (qlist.length == 1) {
-      return qlist[0];
-    }
-    return this.flattenQuery(qlist);
+    return qlist.split(/\s*,\s*/);  // can't flatten more than a split string.
   }
 
   var flattened = [];
@@ -212,18 +208,12 @@ KeyboardLayout.prototype.flattenQuery = function(qlist) {
 // It will favor readability over minimalism, grouping things by modifier, row,
 // hand, and finger.
 KeyboardLayout.prototype.simplifyQuery = function(qlist) {
-  if (typeof qlist === "string") {
-    qlist = [qlist];
-  }
   qlist = this.flattenQuery(qlist);
   var canonical = this.canonicalizedQuery(qlist);
+  console.log('after canonicalize', canonical);
   var specs = [];
-  if (qlist.length == 1) {
-    specs.push(this.splitSpecStr(canonical));
-  } else {
-    for (var qi in canonical) {
-      specs.push(this.splitSpecStr(canonical[qi]));
-    }
+  for (var qi in canonical) {
+    specs.push(this.splitSpecStr(canonical[qi]));
   }
 
   var that = this;

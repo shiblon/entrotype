@@ -11,9 +11,7 @@ entrotypeControllers.controller('FreeplayListCtrl', ['$scope', '$location', '$ro
   $scope.levelSelect = function(groupOrLevel) {
     // A level will have a query parameter. A group contaning levels (or
     // other groups) will have a review parameter.
-    // TODO: figure out why simplifying a simple query doesn't work properly.
-    //var query = $scope.layout.simplifyQuery(groupOrLevel.query());
-    var query = groupOrLevel.query();
+    var query = $scope.layout.simplifyQuery(groupOrLevel.query());
     $location.path('/game').search('q', query);
   };
 }]);
