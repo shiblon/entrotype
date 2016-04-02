@@ -210,7 +210,6 @@ KeyboardLayout.prototype.flattenQuery = function(qlist) {
 KeyboardLayout.prototype.simplifyQuery = function(qlist) {
   qlist = this.flattenQuery(qlist);
   var canonical = this.canonicalizedQuery(qlist);
-  console.log('after canonicalize', canonical);
   var specs = [];
   for (var qi in canonical) {
     specs.push(this.splitSpecStr(canonical[qi]));

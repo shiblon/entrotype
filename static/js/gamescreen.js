@@ -50,7 +50,6 @@ GameScreen = function(parent, makeGame, gameConfig) {
     'text-align': 'center',
     'position': 'relative',
     'display': 'inline-block',
-    'border': '1px solid gray',
     'margin': '0',
     'outline': 'none',
   })

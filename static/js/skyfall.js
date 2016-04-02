@@ -175,6 +175,7 @@ function skyFallBigBang(canvas, numDroplets, charGenerator, config) {
   onkey = config.onkey || function() {};
   onstart = config.onstart || function() {};
   onstop = config.onstop || function() {};
+  ontick = config.ontick || function() {};
 
   var hits = 0,
       misses = 0,
@@ -314,6 +315,7 @@ function skyFallBigBang(canvas, numDroplets, charGenerator, config) {
 
   var bb = bigbang(window, {
     ontick: function(t, dt) {
+      ontick(t, dt); // pass through to configured tick (for clocks, for example).
       if (keyPressed != null) {
         var c = String.fromCharCode(keyPressed);
         keyPressed = null;

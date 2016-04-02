@@ -1,7 +1,43 @@
-<div id="game-container" class="content-container">
-</div>
-<div id="game-done-nav" class="no-display">
-  <div ng-repeat="nav in nextPlaces" class="nav-el">
-    <span ng-click="nav.click()">{{nav.text}}</span>
+<style>
+  .game-header {
+    position: absolute;
+    top: 0;
+    height: 50px;
+    left: 0;
+    right: 0;
+    border-bottom: 1px solid gray;
+    font-size: 40px;
+  }
+  .game-footer {
+    position: absolute;
+    bottom: 0;
+    height: 50px;
+    left: 0;
+    right: 0;
+    border-top: 1px solid gray;
+  }
+  .game-field {
+    position: absolute;
+    top: 50px;
+    bottom: 50px;
+    left: 0;
+    right: 0;
+  }
+  #clock {
+    position: absolute;
+    right: 0;
+  }
+</style>
+<div id="game-main" class="content-container">
+  <div class="game-header">
+    <div id="clock" ng-class="{'no-display': !(running || finished)}">{{ clock }}</div>
+  </div>
+  <div id="game-container" class="game-field"></div>
+  <div class="game-footer">
+    <div ng-class="{'no-display': !finished}">
+      <div ng-click="again()" class="nav-el">Again</div>
+      <div ng-click="go('/levels')" class="nav-el">Levels</div>
+      <div ng-click="go('/')" class="nav-el">Home</div>
+    </div>
   </div>
 </div>

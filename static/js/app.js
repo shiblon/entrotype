@@ -1,11 +1,8 @@
-var entrotypeApp = angular.module('entrotypeApp', [
+angular.module('entrotypeApp', [
   'ngRoute',
   'entrotypeControllers',
-]);
-
-entrotypeApp.config([
-  '$routeProvider',
-  function($routeProvider) {
+])
+.config(['$routeProvider', function($routeProvider) {
     $routeProvider
       .when('/levels', {
         templateUrl: 'partials/all-levels.html',

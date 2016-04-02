@@ -1,4 +1,4 @@
-<div ng-controller="FreeplayListCtrl" id="freeplay-container" class="content-container">
+<div id="freeplay-container" class="content-container">
   <div ng-repeat="supergroup in levels.root().children()" class="supergroup">
     <div class="title-supergroup">
       {{ supergroup.title() }}
@@ -11,17 +11,17 @@
         {{ level.title() }}
       </div>
       <div ng-click="levelSelect(group)" class="review-group">
-        Review <span>{{ group.title() }}</span>
+        Review {{ group.title() }}
       </div>
     </div>
     <div ng-click="levelSelect(supergroup)" class="review-supergroup">
-      Review <span>{{ supergroup.title() }}</span>
+      Review {{ supergroup.title() }}
     </div>
   </div>
   <div class="supergroup">
     <div class="title-supergroup">{{ levels.root().title() }}</div>
     <div ng-click="levelSelect(levels.root())" class="review-supergroup">
-      Review <span>{{ levels.root().title() }}</span>
+      Review {{ levels.root().title() }}
     </div>
   </div>
 </div>
