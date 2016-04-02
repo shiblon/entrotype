@@ -75,7 +75,7 @@ div .level {
 }
 
 .no-display {
-  display: none;
+  display: none !important;
 }
 
 .nav-el {

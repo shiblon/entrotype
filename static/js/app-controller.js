@@ -61,15 +61,23 @@ angular.module('entrotypeControllers', [])
 
     $scope.running = false;
     $scope.finished = false;
+    $scope.paused = false;
 
     gameParent.empty();
     var gs = new SingleKeyGameScreen(gameParent, makeSkyFall, {
       num: 1,
       countdownSeconds: 0,
       onstart: function() {
+        console.log('started');
         $scope.$apply(function() {
           $scope.clock = clockStr(seconds);
           $scope.running = true;
+          $scope.paused = false;
+        });
+      },
+      onpause: function() {
+        $scope.$apply(function() {
+          $scope.paused = true;
         });
       },
       ontick: function(t, dt) {
