@@ -6,7 +6,7 @@ angular.module('entrotypeControllers', [])
   $scope.layout = new KeyboardLayout('ansi-qwerty');
   $scope.go = function(path, search) {
     search = search || {};
-    $location.path(path);
+    $location.path(path).search({}); // clear search terms, then add the new ones
     $.each(search, function(k, v) {
       $location.search(k, v);
     });
