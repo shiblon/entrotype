@@ -15,12 +15,12 @@ User.prototype.addStats = function(keystats) {
   this._overall_stats.mergeFrom(keystats);
 };
 
-User.prototype.unlockLevel = function(levelPath) {
-  this._levels_unlocked[levelPath] = true;
+User.prototype.unlock = function(path) {
+  this._levels_unlocked[path] = true;
 };
 
-User.prototype.isUnlockedLevel = function(levelPath) {
-  return this._levels_unlocked[levelPath] || false;
+User.prototype.isUnlocked = function(path) {
+  return this._levels_unlocked[path];
 };
 
 }());
