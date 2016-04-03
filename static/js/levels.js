@@ -5,21 +5,40 @@ function Level(title, query, description) {
   this._title = title;
   this._query = query;
   this._description = description;
+  this._parent = null;
 }
 
 Level.prototype.title = function() { return this._title };
 Level.prototype.query = function() { return this._query };
 Level.prototype.description = function() { return this._description };
+Level.prototype.parent = function(parent) {
+  if (parent !== undefined) {
+    this._parent = parent;
+  }
+  return this._parent;
+};
 
 function Group(name, title, children) {
   this._name = name;
   this._title = title;
   this._children = children;
+  this._parent = null;
+
+  for (var i in this._children) {
+    var c = this._children[i];
+    c.parent(this);
+  }
 }
 
 Group.prototype.name = function() { return this._name };
 Group.prototype.title = function() { return this._title };
 Group.prototype.children = function() { return this._children };
+Group.prototype.parent = function() {
+  if (parent !== undefined) {
+    this._parent = parent;
+  }
+  return this._parent;
+};
 Group.prototype.query = function() {
   // Recursively add all of the queries together.
   var queries = [];
@@ -27,6 +46,15 @@ Group.prototype.query = function() {
     queries.push(this._children[i].query());
   }
   return queries.join(",");
+};
+Group.prototype.path = function() {
+  var path = [this];
+  var parent = this.parent();
+  while (parent != null) {
+    path.push(parent);
+    parent = parent.parent();
+  }
+  return path.reverse();
 };
 
 function KBLevels(layout) {

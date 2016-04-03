@@ -11,6 +11,11 @@ angular.module('entrotypeControllers', [])
       $location.search(k, v);
     });
   };
+
+  // TODO: make this real
+  $scope.getUser = function() {
+    return new User("Test User");
+  };
 }])
 .controller('FreeplayListCtrl', ['$scope', '$route', function($scope, $route) {
   $scope.levelSelect = function(groupOrLevel) {
