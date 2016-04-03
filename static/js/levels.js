@@ -38,7 +38,8 @@ LNode.prototype.parent = function(parent) {
   }
   return this._parent;
 };
-LNode.prototype.isGroup = function() { return this._children != null; }
+LNode.prototype.children = function() { return this._children || null };
+LNode.prototype.isGroup = function() { return this.children() != null };
 LNode.prototype.name = function() { return this._name };
 LNode.prototype.title = function() { return this._title };
 LNode.prototype.description = function() { return this._description };
@@ -47,8 +48,12 @@ LNode.prototype.query =  function() {
     return this._query;
   }
   var queries = [];
-  for (var i=0, len=this._children.length; i<len; i++) {
-    queries.push(this._children[i].query());
+  var children = this.children();
+  if (children == null) {
+    throw "group with no children";
+  }
+  for (var i=0, len=children.length; i<len; i++) {
+    queries.push(children[i].query());
   }
   return queries.join(",");
 };
@@ -76,8 +81,8 @@ LNode.prototype.path = function() {
   if (parent == null) {
     return "/";
   }
-  // Replace zero or more occurrences of a trailing / with one /, then append.
-  return parent.path().replace(/\/*$/, '/') + this.name();
+  // Remove any trailing '/', then add this element.
+  return parent.path().replace(/\/+$/, '') + '/' + this.name();
 };
 LNode.prototype.search = function(relPath) {
   var ps = splitPath(relPath);
@@ -121,10 +126,6 @@ function Group(name, title, description, children) {
   LNode.call(this, name, title, description, children);
 }
 _isa(Group, LNode);
-
-Group.prototype.children = function() {
-  return this._children;
-};
 
 function KBLevels(layout) {
   this._root = new Group('all', 'All Skills', 'All characters on the keyboard.', [

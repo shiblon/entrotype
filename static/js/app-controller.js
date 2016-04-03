@@ -38,9 +38,11 @@ angular.module('entrotypeControllers', [])
       console.debug('locked level', groupOrLevel.path());
       return;
     }
-    //$scope.$parent.groupOrLevel = groupOrLevel;
     var query = $scope.layout.simplifyQuery(groupOrLevel.query());
-    $scope.go('/game', {'q': query, 'path': groupOrLevel.path()});
+    $scope.go('/game', {
+      'q': query,
+      'path': groupOrLevel.path()
+    });
   };
 }])
 .controller('GameCtrl', ['$scope', '$route', '$routeParams', function($scope, $route, $routeParams) {
