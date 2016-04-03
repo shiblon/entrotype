@@ -13,29 +13,20 @@ angular.module('entrotypeControllers', [])
   };
 
   // TODO: Make this real.
-  $scope.user = new User("Test User");
+  $scope.user = new User("Test User", $scope.levels);
+  $scope.user.unlock("/home/basic");
 
   $scope.isUnlocked = function(groupOrLevel) {
-    var levels = groupOrLevel.ls();
-    for (var i=0, len=levels.length; i<len; i++) {
-      if (!$scope.user.isUnlocked(levels[i])) {
-        return false;
-      }
-    }
-    return true;
+    return $scope.user.isUnlocked(groupOrLevel.path());
   };
 
-  $scope.unlock = function(groupOrLevel) {
-    var levels = groupOrLevel.ls();
-    for (var i=0, len=levels.length; i<len; i++) {
-      $scope.user.unlock(levels[i]);
-    }
+  $scope.isBeaten = function(groupOrLevel) {
+    return $scope.user.isBeaten(groupOrLevel.path());
   };
 }])
-.controller('FreeplayListCtrl', ['$scope', '$route', function($scope, $route) {
+.controller('FreeplayListCtrl', ['$scope', function($scope) {
   $scope.levelSelect = function(groupOrLevel) {
     if (!groupOrLevel.isGroup() && !$scope.isUnlocked(groupOrLevel)) {
-      console.debug('locked level', groupOrLevel.path());
       return;
     }
     var query = $scope.layout.simplifyQuery(groupOrLevel.query());

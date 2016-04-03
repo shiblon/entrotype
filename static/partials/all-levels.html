@@ -2,6 +2,9 @@
   .locked {
     color: gray;
   }
+  .beaten {
+    color: green;
+  }
 </style>
 <div id="freeplay-container" class="content-container">
   <div ng-repeat="supergroup in levels.root().children()" class="supergroup">
@@ -12,21 +15,21 @@
       <div class="title-group">
         {{ group.title() }}
       </div>
-      <div ng-repeat="level in group.children()" ng-click="levelSelect(level)" ng-class="{locked: !user.isUnlockedLevel(level.path())}" class="level">
+      <div ng-repeat="level in group.children()" ng-click="levelSelect(level)" ng-class="{locked: !isUnlocked(level), beaten: isBeaten(level)}" class="level">
         {{ level.title() }}
       </div>
       <div ng-click="levelSelect(group)" class="review-group">
-        Review {{ group.title() }}
+        Test out of {{ group.title() }}
       </div>
     </div>
     <div ng-click="levelSelect(supergroup)" class="review-supergroup">
-      Review {{ supergroup.title() }}
+      Test out of {{ supergroup.title() }}
     </div>
   </div>
   <div class="supergroup">
     <div class="title-supergroup">{{ levels.root().title() }}</div>
     <div ng-click="levelSelect(levels.root())" class="review-supergroup">
-      Review {{ levels.root().title() }}
+      Test out of {{ levels.root().title() }}
     </div>
   </div>
 </div>

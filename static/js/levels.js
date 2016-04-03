@@ -59,7 +59,6 @@ LNode.prototype.query =  function() {
 };
 LNode.prototype.ls = function() {
   if (!this.isGroup()) {
-    console.log('leaf', [this.path()]);
     return [this.path()];
   }
   var leaves = [];
@@ -200,6 +199,14 @@ KBLevels.prototype.search = function(path) {
     path = ps[1];
   }
   return this.root().search(path);
+};
+
+KBLevels.prototype.ls = function(path) {
+  var gl = this.search(path);
+  if (gl == null) {
+    return [];
+  }
+  return gl.ls();
 };
 
 KB_LEVELS = new KBLevels();
