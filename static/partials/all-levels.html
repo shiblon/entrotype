@@ -4,6 +4,7 @@
   }
   .beaten {
     color: green;
+    font-weight: bold;
   }
 </style>
 <div id="freeplay-container" class="content-container">
@@ -19,17 +20,17 @@
         {{ level.title() }}
       </div>
       <div ng-click="levelSelect(group)" class="review-group">
-        Test out of {{ group.title() }}
+        {{ isBeaten(group) ? 'Review' : 'Test out of' }} {{ group.title() }}
       </div>
     </div>
     <div ng-click="levelSelect(supergroup)" class="review-supergroup">
-      Test out of {{ supergroup.title() }}
+      {{ isBeaten(supergroup) ? 'Review' : 'Test out of' }} {{ supergroup.title() }}
     </div>
   </div>
   <div class="supergroup">
     <div class="title-supergroup">{{ levels.root().title() }}</div>
     <div ng-click="levelSelect(levels.root())" class="review-supergroup">
-      Test out of {{ levels.root().title() }}
+      {{ isBeaten(levels.root()) ? 'Review' : 'Test out of' }} {{ levels.root().title() }}
     </div>
   </div>
 </div>
