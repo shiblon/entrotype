@@ -21,6 +21,8 @@ angular.module('entrotypeControllers', [])
   $scope.levelSelect = function(groupOrLevel) {
     $scope.$parent.groupOrLevel = groupOrLevel;
     var query = $scope.layout.simplifyQuery(groupOrLevel.query());
+    console.log(groupOrLevel.pathStr());
+    console.log(groupOrLevel.pathTitle());
     $scope.go('/game', {'q': query});
   };
 }])
