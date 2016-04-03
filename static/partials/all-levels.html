@@ -1,3 +1,8 @@
+<style>
+  .locked {
+    color: gray;
+  }
+</style>
 <div id="freeplay-container" class="content-container">
   <div ng-repeat="supergroup in levels.root().children()" class="supergroup">
     <div class="title-supergroup">
@@ -7,7 +12,7 @@
       <div class="title-group">
         {{ group.title() }}
       </div>
-      <div ng-repeat="level in group.children()" ng-click="levelSelect(level)" class="level">
+      <div ng-repeat="level in group.children()" ng-click="levelSelect(level)" ng-class="{locked: !user.isUnlockedLevel(level.path())}" class="level">
         {{ level.title() }}
       </div>
       <div ng-click="levelSelect(group)" class="review-group">

@@ -12,18 +12,18 @@ angular.module('entrotypeControllers', [])
     });
   };
 
-  // TODO: make this real
-  $scope.getUser = function() {
-    return new User("Test User");
-  };
+  // TODO: Make this real.
+  $scope.user = new User("Test User");
 }])
 .controller('FreeplayListCtrl', ['$scope', '$route', function($scope, $route) {
   $scope.levelSelect = function(groupOrLevel) {
+    console.log(groupOrLevel.ls());
+    if (!groupOrLevel.isGroup() && !$scope.user.isUnlockedLevel(groupOrLevel.path())) {
+      return;
+    }
     $scope.$parent.groupOrLevel = groupOrLevel;
     var query = $scope.layout.simplifyQuery(groupOrLevel.query());
-    console.log(groupOrLevel.pathStr());
-    console.log(groupOrLevel.pathTitle());
-    $scope.go('/game', {'q': query});
+    $scope.go('/game', {'q': query, 'path': groupOrLevel.path()});
   };
 }])
 .controller('GameCtrl', ['$scope', '$route', '$routeParams', function($scope, $route, $routeParams) {
@@ -50,6 +50,10 @@ angular.module('entrotypeControllers', [])
     $scope.query = $routeParams.q;
   } else {
     throw "no query specified in URL search params";
+  }
+
+  if ($routeParams.path != null) {
+    $scope.path = $routeParams.path;
   }
 
   (function() {

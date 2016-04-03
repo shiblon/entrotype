@@ -23,6 +23,10 @@
     left: 0;
     right: 0;
   }
+  #path {
+    position: absolute;
+    left: 0;
+  }
   #clock {
     position: absolute;
     right: 0;
@@ -30,7 +34,8 @@
 </style>
 <div id="game-main" class="content-container">
   <div class="game-header">
-    <div id="clock" ng-class="{'no-display': !(running || finished)}">{{ clock }}</div>
+    <div id="path" ng-class="{'no-display': path == null}">{{ path }}</div
+    ><div id="clock" ng-class="{'no-display': !(running || finished)}">{{ clock }}</div>
   </div>
   <div id="game-container" class="game-field"></div>
   <div class="game-footer">

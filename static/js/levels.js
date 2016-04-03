@@ -6,13 +6,22 @@ function _isa(child, parent) {
   child.prototype.constructor = child;
 }
 
+function splitPath(path) {
+  path = (path || "").replace(/\/+$/, '');
+  nextSlash = path.indexOf('/');
+  if (nextSlash < 0) {
+    return [path, ""];
+  }
+  return [path.substr(0, nextSlash), path.substr(nextSlash+1)];
+}
+
 function LNode(name, title, description, queryOrChildren) {
   if (!name.match(/^[a-zA-Z\d]\w*$/)) {
     throw "invalid name for group";
   }
   this._name = name;
   this._title = title;
-  this._descrition = description;
+  this._description = description;
   if (typeof queryOrChildren === "string") {
     this._query = queryOrChildren;
   } else {
@@ -29,6 +38,7 @@ LNode.prototype.parent = function(parent) {
   }
   return this._parent;
 };
+LNode.prototype.isGroup = function() { return this._children != null; }
 LNode.prototype.name = function() { return this._name };
 LNode.prototype.title = function() { return this._title };
 LNode.prototype.description = function() { return this._description };
@@ -42,19 +52,64 @@ LNode.prototype.query =  function() {
   }
   return queries.join(",");
 };
-LNode.prototype.path = function() {
+LNode.prototype.ls = function() {
+  if (!this.isGroup()) {
+    console.log('leaf', [this.path()]);
+    return [this.path()];
+  }
+  var leaves = [];
+  var children = this.children();
+  for (var i=0, len=children.length; i<len; i++) {
+    Array.prototype.push.apply(leaves, children[i].ls());
+  }
+  return leaves;
+};
+LNode.prototype.pathElements = function() {
   var parent = this.parent();
   if (!parent) {
     return [this];
   }
-  return parent.path().concat([this]);
+  return parent.pathElements().concat([this]);
 };
-LNode.prototype.pathStr = function() {
+LNode.prototype.path = function() {
   var parent = this.parent();
   if (parent == null) {
-    return "";
+    return "/";
   }
-  return parent.pathStr() + "/" + this.name();
+  // Replace zero or more occurrences of a trailing / with one /, then append.
+  return parent.path().replace(/\/*$/, '/') + this.name();
+};
+LNode.prototype.search = function(relPath) {
+  var ps = splitPath(relPath);
+  var lookFor = ps[0],
+      subPath = ps[1];
+
+  if (lookFor === "" && subPath != null && subPath !== "") {
+    // Oops - absolute path specified.
+    throw "invalid relative path: " + relPath;
+  }
+
+  // No more elements expected.
+  if (lookFor === "") {
+    return this;
+  }
+
+  if (!this.isGroup()) {
+    // Leaf node, but more elements expected.
+    return null;
+  }
+
+  var children = this.children();
+  for (var i=0, len=children.length; i<len; i++) {
+    var child = children[i];
+    if (child.name() === lookFor) {
+      // Found a matching child - recur into that node.
+      return child.search(subPath);
+    }
+  }
+
+  // No matches found.
+  return null;
 };
 
 function Level(name, query, title, description) {
@@ -136,7 +191,15 @@ function KBLevels(layout) {
 
 KBLevels.prototype.root = function() {
   return this._root;
-}
+};
+
+KBLevels.prototype.search = function(path) {
+  var ps = splitPath(path);
+  if (ps[0] == "") {
+    path = ps[1];
+  }
+  return this.root().search(path);
+};
 
 KB_LEVELS = new KBLevels();
 
