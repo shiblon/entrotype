@@ -16,12 +16,12 @@ angular.module('entrotypeControllers', [])
   $scope.user = new User("Test User", $scope.levels);
   $scope.user.unlock("/home/basic");
 
-  $scope.isUnlocked = function(groupOrLevel) {
-    return $scope.user.isUnlocked(groupOrLevel.path());
-  };
-
   $scope.isBeaten = function(groupOrLevel) {
     return $scope.user.isBeaten(groupOrLevel.path());
+  };
+
+  $scope.isUnlocked = function(groupOrLevel) {
+    return $scope.isBeaten(groupOrLevel) || $scope.user.isUnlocked(groupOrLevel.path());
   };
 }])
 .controller('FreeplayListCtrl', ['$scope', function($scope) {
