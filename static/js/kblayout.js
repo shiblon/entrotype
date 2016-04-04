@@ -28,6 +28,173 @@ KeyRect.prototype.toString = function() {
   return "(" + this.x1 + "," + this.y1 + "; " + this.x2 + "," + this.y2 + ")";
 };
 
+function strToSet(s) {
+  var d = {};
+  for (var i = 0; i < s.length; ++i) {
+    d[s[i]] = true;
+  }
+  return d;
+}
+
+function sortedStr(s) {
+  return s.split("").sort().join("");
+}
+
+KEY_MARGIN = 0.1;
+KEY_RECT_WIDTH = 1.0;
+KEY_OFFSETS = [1.0, 1.5, 1.8, 1.3, 1.3];
+
+CLASS_ROW = sortedStr("BHNT");
+CLASS_HAND = sortedStr("LR");
+CLASS_FINGER = sortedStr("123456");
+CLASS_MODIFIER = sortedStr("-!@^#$%&");
+
+ROW_DICT = strToSet(CLASS_ROW);
+HAND_DICT = strToSet(CLASS_HAND);
+FINGER_DICT = strToSet(CLASS_FINGER);
+MODIFIER_DICT = strToSet(CLASS_MODIFIER);
+
+MODIFIER_SYMBOLS = {
+  none: "-",
+  shift: "!",
+  meta: "@",
+  ctrl: "^",
+  "meta-shift": "#",
+  "ctrl-shift": "$",
+  "ctrl-meta": "%",
+  "ctrl-meta-shift": "&"
+};
+
+SYM_TO_MOD = {
+  '-': 'none',
+  '!': 'shift',
+  '@': 'meta',
+  '^': 'ctrl',
+};
+
+NON_CHARS = {
+  'b': 'backspace',
+  'e': 'enter',
+  't': 'tab',
+  'c': 'capslock',
+  '_': 'space',
+  '!': 'shift',
+  '^': 'ctrl',
+  '@': 'meta',
+};
+
+function uniquifiedArray(arr) {
+  arr = arr.slice(0).sort();
+  var unique = [];
+  var last = null;
+  for (var i in arr) {
+    if (last != arr[i]) {
+      last = arr[i];
+      unique.push(last);
+    }
+  }
+  return unique;
+}
+
+function uniquifiedString(s) {
+  return uniquifiedArray(s.split('')).join('');
+}
+
+// Takes a list of queries (or a string), and produces a list of queries
+// without any comma-delimited strings among them. Always returns a list.
+function flattenQuery(qlist) {
+  if (typeof qlist == 'string' || qlist instanceof String) {
+    return qlist.split(/\s*,\s*/);  // can't flatten more than a split string.
+  }
+
+  var flattened = [];
+  for (var i = 0; i < qlist.length; i++) {
+    flattened = flattened.concat(flattenQuery(qlist[i]));
+  }
+  return flattened;
+}
+
+function splitSpecStr(specStr) {
+  var spec = {rows: "", hands: "", fingers: "", modifiers: ""};
+  for (var i = 0, len = specStr.length; i < len; ++i) {
+    var c = specStr[i];
+    if (ROW_DICT[c]) {
+      spec.rows += c;
+    } else if (HAND_DICT[c]) {
+      spec.hands += c;
+    } else if (FINGER_DICT[c]) {
+      spec.fingers += c;
+    } else if (MODIFIER_DICT[c]) {
+      spec.modifiers += c;
+    } else {
+      console.error("Unknown mapping spec: " + c);
+      return null;
+    }
+  }
+  spec.rows = uniquifiedString(spec.rows);
+  spec.hands = uniquifiedString(spec.hands);
+  spec.fingers = uniquifiedString(spec.fingers);
+  spec.modifiers = uniquifiedString(spec.modifiers);
+  return spec;
+}
+
+function joinSpec(spec) {
+  return spec.rows + spec.hands + spec.fingers + spec.modifiers;
+}
+
+function canonicalizedSpec(spec) {
+  // If all members of a class are represented, we omit that class.
+  var s = {};
+  s.rows = uniquifiedString(spec.rows);
+  s.hands = uniquifiedString(spec.hands);
+  s.fingers = uniquifiedString(spec.fingers);
+  s.modifiers = uniquifiedString(spec.modifiers);
+
+  if (s.rows == CLASS_ROW) {
+    s.rows = "";
+  }
+  if (s.hands == CLASS_HAND) {
+    s.hands = "";
+  }
+  if (s.fingers == CLASS_FINGER) {
+    s.fingers = "";
+  }
+  if (s.modifiers == CLASS_MODIFIER) {
+    s.modifiers = "";
+  }
+
+  return s;
+}
+
+// Simplify the query as much as possible.
+function canonicalizedQuery(query) {
+  if (query instanceof Array) {
+    var canonicalized = [];
+    for (var i in query) {
+      canonicalized.push(canonicalizedQuery(query[i]));
+    }
+    return canonicalized;
+  }
+
+  var arrSplit = query.split(/\s*,\s*/);
+  if (arrSplit.length > 1) {
+    return canonicalizedQuery(arrSplit);
+  }
+
+  var spec = canonicalizedSpec(splitSpecStr(query));
+  return joinSpec(spec);
+}
+
+function nonEmptyIntersection(arr1, arr2) {
+  for (a1 in arr1) {
+    for (a2 in arr2) {
+      if (arr1[a1] == arr2[a2]) {
+        return true;
+      }
+    }
+  }
+}
+
 KeyboardLayout = function(configuration) {
   if (!configuration) {
     configuration = KeyboardLayout.LAYOUT.ansi_qwerty;
@@ -40,66 +207,6 @@ KeyboardLayout = function(configuration) {
   }
   this._configuration = configuration;
 
-  this.KEY_MARGIN = 0.1;
-  this.KEY_RECT_WIDTH = 1.0;
-  this.KEY_OFFSETS = [1.0, 1.5, 1.8, 1.3, 1.3];
-
-  // These are all of our query values for each class (row, hand, finger, mod).
-  this.CLASS_ROW = "BHNT";
-  this.CLASS_HAND = "LR";
-  this.CLASS_FINGER = "123456";
-  this.CLASS_MODIFIER = "-!@^#$%&";
-
-  // Make them all sorted, easy to test for.
-  this.CLASS_ROW = this.CLASS_ROW.split("").sort().join("");
-  this.CLASS_HAND = this.CLASS_HAND.split("").sort().join("");
-  this.CLASS_FINGER = this.CLASS_FINGER.split("").sort().join("");
-  this.CLASS_MODIFIER = this.CLASS_MODIFIER.split("").sort().join("");
-
-  this.MODIFIER_SYMBOLS = {
-    none: "-",
-    shift: "!",
-    meta: "@",
-    ctrl: "^",
-    "meta-shift": "#",
-    "ctrl-shift": "$",
-    "ctrl-meta": "%",
-    "ctrl-meta-shift": "&"
-  };
-
-  this.SYM_TO_MOD = {
-    '-': 'none',
-    '!': 'shift',
-    '@': 'meta',
-    '^': 'ctrl',
-  };
-
-  this.NON_CHARS = {
-    'b': 'backspace',
-    'e': 'enter',
-    't': 'tab',
-    'c': 'capslock',
-    '_': 'space',
-    '!': 'shift',
-    '^': 'ctrl',
-    '@': 'meta',
-  }
-
-
-
-  var strToSet = function(s) {
-    var d = {};
-    for (var i = 0; i < s.length; ++i) {
-      d[s[i]] = true;
-    }
-    return d;
-  }
-
-  this._row_dict = strToSet(this.CLASS_ROW);
-  this._hand_dict = strToSet(this.CLASS_HAND);
-  this._finger_dict = strToSet(this.CLASS_FINGER);
-  this._modifier_dict = strToSet(this.CLASS_MODIFIER);
-
   this._layout = this.parseConfiguration(this._configuration);
 
   // Note that <space> is a query that has to be used implicitly, pretty much all
@@ -110,6 +217,80 @@ KeyboardLayout = function(configuration) {
       ["Bottom Row",          ["B2-", "B3-", "B4-", "B5-", "B16-", "B!"]],
       ["Numbers Row",         ["N2-", "N3-", "N4-", "N5-", "N16-"]],
       ["Numbers Row Shifted", ["N2!", "N3!", "N4!", "N5!", "N16!"]]]);
+};
+
+// Given a list of queries, return a more minimal list if possible.
+// It will favor readability over minimalism, grouping things by modifier, row,
+// hand, and finger.
+var simplify = KeyboardLayout.simplify = function(qlist) {
+  qlist = flattenQuery(qlist);
+  var canonical = canonicalizedQuery(qlist);
+  var specs = [];
+  for (var qi in canonical) {
+    specs.push(splitSpecStr(canonical[qi]));
+  }
+
+  // Takes out only the non-null specs, and canonicalizes their internals so
+  // they are minimally represented.
+  function filterAndCanonicalize(specs) {
+    var good = [];
+    for (var i = 0; i < specs.length; i++) {
+      var s = specs[i];
+      if (!s) {
+        continue;
+      }
+      good.push(canonicalizedSpec(s));
+    }
+    return good;
+  }
+
+  // Looks for pairs of mergeable items, meaning that you can specify a single
+  // field that can differ, and it will find all of the items that have all
+  // other fields in common and produce a merged item from all of them.
+  // For example, given "H3" and "H4" with "fingers" specified as the property
+  // to merge, it will product "H34". The "fingers" property differs, but the
+  // rest are the same.
+  function mergeCommon(specs, propToMerge) {
+    specs = specs.slice(0);
+    for (var i = 0; i < specs.length; i++) {
+      var a = specs[i];
+      if (!a) continue;
+      for (var j = i+1; j < specs.length; j++) {
+        var b = specs[j];
+        if (!b) continue;
+        // Now check that all of the non-merging properties are the same.
+        merge = true;
+        for (var k in a) {
+          if (k == propToMerge) continue;
+          if (a[k] != b[k]) {
+            merge = false;
+            break;
+          }
+        }
+        if (merge) {
+          a[propToMerge] += b[propToMerge];
+          specs[j] = null;
+        }
+      }
+    }
+    return filterAndCanonicalize(specs);
+  }
+
+  // Merge hierarchically. This won't necessarily produce a minimal
+  // representation, but the representation it does produce will be easily
+  // understood by a human.
+  specs = mergeCommon(specs, 'fingers');
+  specs = mergeCommon(specs, 'hands');
+  specs = mergeCommon(specs, 'rows');
+  specs = mergeCommon(specs, 'modifiers');
+
+  // The queries we now have as specs are all as simple as they can get. Pass
+  // out a list of appropriate strings.
+  var queries = [];
+  for (var i in specs) {
+    queries.push(joinSpec(specs[i]));
+  }
+  return queries;
 };
 
 KeyboardLayout.prototype.configKey = function(modifier, row, col) {
@@ -166,7 +347,7 @@ KeyboardLayout.prototype.defineLevels = function(levelSpec) {
     }
     // Add the review.
     if (qgroup.length > 1) {
-      levels.push(new KeyboardLevel(this.simplifyQuery(qgroup), {
+      levels.push(new KeyboardLevel(simplify(qgroup), {
         title: qtitle + " - Review",
         isReview: true,
       }));
@@ -181,182 +362,13 @@ KeyboardLayout.prototype.defineLevels = function(levelSpec) {
       } else {
         review_title = "Final Review";
       }
-      levels.push(new KeyboardLevel(this.simplifyQuery(current_summary), {
+      levels.push(new KeyboardLevel(simplify(current_summary), {
         title: review_title,
         isCumulative: true,
       }));
     }
   }
   return levels;
-};
-
-// Takes a list of queries (or a string), and produces a list of queries
-// without any comma-delimited strings among them. Always returns a list.
-KeyboardLayout.prototype.flattenQuery = function(qlist) {
-  if (typeof qlist == 'string' || qlist instanceof String) {
-    return qlist.split(/\s*,\s*/);  // can't flatten more than a split string.
-  }
-
-  var flattened = [];
-  for (var i = 0; i < qlist.length; i++) {
-    flattened = flattened.concat(this.flattenQuery(qlist[i]));
-  }
-  return flattened;
-};
-
-// Given a list of queries, return a more minimal list if possible.
-// It will favor readability over minimalism, grouping things by modifier, row,
-// hand, and finger.
-KeyboardLayout.prototype.simplifyQuery = function(qlist) {
-  qlist = this.flattenQuery(qlist);
-  var canonical = this.canonicalizedQuery(qlist);
-  var specs = [];
-  for (var qi in canonical) {
-    specs.push(this.splitSpecStr(canonical[qi]));
-  }
-
-  var that = this;
-
-  // Takes out only the non-null specs, and canonicalizes their internals so
-  // they are minimally represented.
-  function filterAndCanonicalize(specs) {
-    var good = [];
-    for (var i = 0; i < specs.length; i++) {
-      var s = specs[i];
-      if (!s) {
-        continue;
-      }
-      good.push(that.canonicalizedSpec(s));
-    }
-    return good;
-  }
-
-  // Looks for pairs of mergeable items, meaning that you can specify a single
-  // field that can differ, and it will find all of the items that have all
-  // other fields in common and produce a merged item from all of them.
-  // For example, given "H3" and "H4" with "fingers" specified as the property
-  // to merge, it will product "H34". The "fingers" property differs, but the
-  // rest are the same.
-  function mergeCommon(specs, propToMerge) {
-    specs = specs.slice(0);
-    for (var i = 0; i < specs.length; i++) {
-      var a = specs[i];
-      if (!a) continue;
-      for (var j = i+1; j < specs.length; j++) {
-        var b = specs[j];
-        if (!b) continue;
-        // Now check that all of the non-merging properties are the same.
-        merge = true;
-        for (var k in a) {
-          if (k == propToMerge) continue;
-          if (a[k] != b[k]) {
-            merge = false;
-            break;
-          }
-        }
-        if (merge) {
-          a[propToMerge] += b[propToMerge];
-          specs[j] = null;
-        }
-      }
-    }
-    return filterAndCanonicalize(specs);
-  }
-
-  // Merge hierarchically. This won't necessarily produce a minimal
-  // representation, but the representation it does produce will be easily
-  // understood by a human.
-  specs = mergeCommon(specs, 'fingers');
-  specs = mergeCommon(specs, 'hands');
-  specs = mergeCommon(specs, 'rows');
-  specs = mergeCommon(specs, 'modifiers');
-
-  // The queries we now have as specs are all as simple as they can get. Pass
-  // out a list of appropriate strings.
-  var queries = [];
-  for (var i in specs) {
-    queries.push(this.joinSpec(specs[i]));
-  }
-  return queries;
-};
-
-KeyboardLayout.prototype.uniquifiedArray = function(arr) {
-  arr = arr.slice(0).sort();
-  var unique = [];
-  var last = null;
-  for (var i in arr) {
-    if (last != arr[i]) {
-      last = arr[i];
-      unique.push(last);
-    }
-  }
-  return unique;
-};
-
-KeyboardLayout.prototype.uniquifiedString = function(s) {
-  return this.uniquifiedArray(s.split('')).join('');
-};
-
-KeyboardLayout.prototype.joinSpec = function(spec) {
-  return spec.rows + spec.hands + spec.fingers + spec.modifiers;
-};
-
-KeyboardLayout.prototype.canonicalizedSpec = function(spec) {
-  // If all members of a class are represented, we omit that class.
-  var s = {};
-  s.rows = this.uniquifiedString(spec.rows);
-  s.hands = this.uniquifiedString(spec.hands);
-  s.fingers = this.uniquifiedString(spec.fingers);
-  s.modifiers = this.uniquifiedString(spec.modifiers);
-
-  if (s.rows == this.CLASS_ROW) {
-    s.rows = "";
-  }
-  if (s.hands == this.CLASS_HAND) {
-    s.hands = "";
-  }
-  if (s.fingers == this.CLASS_FINGER) {
-    s.fingers = "";
-  }
-  if (s.modifiers == this.CLASS_MODIFIER) {
-    s.modifiers = "";
-  }
-
-  return s;
-};
-
-KeyboardLayout.prototype.splitSpecStr = function(specStr) {
-  var spec = {rows: "", hands: "", fingers: "", modifiers: ""};
-  for (var i = 0, len = specStr.length; i < len; ++i) {
-    var c = specStr[i];
-    if (this._row_dict[c]) {
-      spec.rows += c;
-    } else if (this._hand_dict[c]) {
-      spec.hands += c;
-    } else if (this._finger_dict[c]) {
-      spec.fingers += c;
-    } else if (this._modifier_dict[c]) {
-      spec.modifiers += c;
-    } else {
-      console.error("Unknown mapping spec: " + c);
-      return null;
-    }
-  }
-  spec.rows = this.uniquifiedString(spec.rows);
-  spec.hands = this.uniquifiedString(spec.hands);
-  spec.fingers = this.uniquifiedString(spec.fingers);
-  spec.modifiers = this.uniquifiedString(spec.modifiers);
-  return spec;
-};
-
-KeyboardLayout.prototype.nonEmptyIntersection = function(arr1, arr2) {
-  for (a1 in arr1) {
-    for (a2 in arr2) {
-      if (arr1[a1] == arr2[a2]) {
-        return true;
-      }
-    }
-  }
 };
 
 // Query the keyboard layout for all keys that fit a set of specified
@@ -385,7 +397,7 @@ KeyboardLayout.prototype.query = function() {
   for (var ai in arguments) {
     query.push(arguments[ai]);
   }
-  query = this.flattenQuery(query);
+  query = flattenQuery(query);
 
   // If we have a list, process each value in it.
   if (query.length > 1) {
@@ -393,7 +405,7 @@ KeyboardLayout.prototype.query = function() {
     for (var qi in query) {
       Array.prototype.push.apply(keys, this.query(query[qi]));
     }
-    return this.uniquifiedArray(keys);
+    return uniquifiedArray(keys);
   }
 
   var queryStr = query[0];
@@ -404,12 +416,12 @@ KeyboardLayout.prototype.query = function() {
   if (this._query_cache == undefined) {
     this._query_cache = {};
   }
-  var canonicalQueryStr = this.canonicalizedQuery(queryStr);
+  var canonicalQueryStr = canonicalizedQuery(queryStr);
   if (this._query_cache[canonicalQueryStr] != undefined) {
     return this._query_cache[canonicalQueryStr];
   }
 
-  var split_spec = this.splitSpecStr(canonicalQueryStr);
+  var sp = splitSpecStr(canonicalQueryStr);
 
   // Search for all keys that satisfy these constraints.  That means that
   // all specified query classes have a matching element in each key.
@@ -422,38 +434,15 @@ KeyboardLayout.prototype.query = function() {
     var fingers = spec[2];
     var modifiers = spec[3];
 
-    if ((split_spec.rows.length == 0 ||
-         this.nonEmptyIntersection(split_spec.rows, rows)) &&
-        (split_spec.hands.length == 0 ||
-         this.nonEmptyIntersection(split_spec.hands, hands)) &&
-        (split_spec.fingers.length == 0 ||
-         this.nonEmptyIntersection(split_spec.fingers, fingers)) &&
-        (split_spec.modifiers.length == 0 ||
-         this.nonEmptyIntersection(split_spec.modifiers, modifiers))) {
+    if ((sp.rows.length == 0 || nonEmptyIntersection(sp.rows, rows)) &&
+        (sp.hands.length == 0 || nonEmptyIntersection(sp.hands, hands)) &&
+        (sp.fingers.length == 0 || nonEmptyIntersection(sp.fingers, fingers)) &&
+        (sp.modifiers.length == 0 || nonEmptyIntersection(sp.modifiers, modifiers))) {
       matching_chars.push(c);
     }
   }
   this._query_cache[canonicalQueryStr] = matching_chars;
   return matching_chars;
-};
-
-// Simplify the query as much as possible.
-KeyboardLayout.prototype.canonicalizedQuery = function(query) {
-  if (query instanceof Array) {
-    var canonicalized = [];
-    for (var i in query) {
-      canonicalized.push(this.canonicalizedQuery(query[i]));
-    }
-    return canonicalized;
-  }
-
-  var arrSplit = query.split(/\s*,\s*/);
-  if (arrSplit.length > 1) {
-    return this.canonicalizedQuery(arrSplit);
-  }
-
-  var spec = this.canonicalizedSpec(this.splitSpecStr(query));
-  return this.joinSpec(spec);
 };
 
 KeyboardLayout.prototype.getRandomChar = function(query) {
@@ -523,8 +512,8 @@ KeyboardLayout.prototype.boundingBox = function() {
   var max_keys = this.maxKeysPerRow();
   return new KeyRect(
     0, 0,
-    (max_keys + 0.5) * this.KEY_RECT_WIDTH,
-    this.hardware().length * this.KEY_RECT_WIDTH);
+    (max_keys + 0.5) * KEY_RECT_WIDTH,
+    this.hardware().length * KEY_RECT_WIDTH);
 };
 
 KeyboardLayout.prototype.rectangles = function() {
@@ -540,20 +529,20 @@ KeyboardLayout.prototype.rectangles = function() {
   var rectangles = [];
   var topEdge = 0.0;
   for (var r = 0; r < hw.length; r++) {
-    var bottomEdge = topEdge + this.KEY_RECT_WIDTH;
+    var bottomEdge = topEdge + KEY_RECT_WIDTH;
     var row = hw[r];
     rectangles[r] = [];
-    var off = this.KEY_OFFSETS[r];
-    rectangles[r][0] = new KeyRect(0, topEdge, this.KEY_OFFSETS[r], bottomEdge);
-    var prevEdge = this.KEY_OFFSETS[r];
+    var off = KEY_OFFSETS[r];
+    rectangles[r][0] = new KeyRect(0, topEdge, KEY_OFFSETS[r], bottomEdge);
+    var prevEdge = KEY_OFFSETS[r];
     for (var c = 1; c < max_keys - 1; c++) {
-      var nextEdge = prevEdge + this.KEY_RECT_WIDTH;
+      var nextEdge = prevEdge + KEY_RECT_WIDTH;
       rectangles[r][c] = new KeyRect(prevEdge, topEdge, nextEdge, bottomEdge);
       prevEdge = nextEdge;
     }
     rectangles[r][max_keys-1] = new KeyRect(
       prevEdge, topEdge,
-      (max_keys + 0.5) * this.KEY_RECT_WIDTH, bottomEdge);
+      (max_keys + 0.5) * KEY_RECT_WIDTH, bottomEdge);
     topEdge = bottomEdge;
   }
 
@@ -721,8 +710,8 @@ KeyboardLayout.prototype.polygons = function() {
 
   // Make shrunken rectangles.
   var rectVertices = function(rect) {
-    var x1 = rect.x1 + that.KEY_MARGIN, y1 = rect.y1 + that.KEY_MARGIN,
-        x2 = rect.x2 - that.KEY_MARGIN, y2 = rect.y2 - that.KEY_MARGIN;
+    var x1 = rect.x1 + KEY_MARGIN, y1 = rect.y1 + KEY_MARGIN,
+        x2 = rect.x2 - KEY_MARGIN, y2 = rect.y2 - KEY_MARGIN;
     return [
         [x1, y1], [x2, y1],
         [x2, y2], [x1, y2],
@@ -734,15 +723,15 @@ KeyboardLayout.prototype.polygons = function() {
       vertices: verts,
     };
     if (nonCharName) {
-      var mod = that.SYM_TO_MOD[nonCharName];
+      var mod = SYM_TO_MOD[nonCharName];
       if (mod) {
         poly.mod = mod;
       }
-      poly.nonchar = that.NON_CHARS[nonCharName];
+      poly.nonchar = NON_CHARS[nonCharName];
       return poly;
     }
     var isAChar = false;
-    for (var mod in that.MODIFIER_SYMBOLS) {
+    for (var mod in MODIFIER_SYMBOLS) {
       if (that._configuration[mod]) {
         var key = that.configKey(mod, r, c);
         if (key != ' ') {
@@ -869,7 +858,7 @@ KeyboardLayout.prototype.parseConfiguration = function(configuration) {
       // Canonicalize the meta key spec.
       mkey = mkey.toLowerCase().split("-").sort().join("-");
     }
-    var mod_sym = this.MODIFIER_SYMBOLS[mkey];
+    var mod_sym = MODIFIER_SYMBOLS[mkey];
     if (mod_sym == undefined) {
       throw "Bad modifier key specified: " + mkey;
     }

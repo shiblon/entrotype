@@ -29,7 +29,7 @@ angular.module('entrotypeControllers', [])
     if (!groupOrLevel.isGroup() && !$scope.isUnlocked(groupOrLevel)) {
       return;
     }
-    var query = $scope.layout.simplifyQuery(groupOrLevel.query());
+    var query = KeyboardLayout.simplify(groupOrLevel.query());
     $scope.go('/game', {
       'l': groupOrLevel.path()
     });
@@ -61,7 +61,7 @@ angular.module('entrotypeControllers', [])
   }
 
   var level = $scope.levels.search($scope.path);
-  var query = level.query();
+  var query = KeyboardLayout.simplify(level.query());
 
   (function() {
     console.log('query', query);
@@ -113,6 +113,14 @@ angular.module('entrotypeControllers', [])
           $scope.finished = true;
           $scope.running = false;
           $scope.user.addStats($scope.path, gs.stats);
+          // TODO: check whether this level was just beaten, and whether that
+          // implies that something should be unlocked.
+          // TODO: if the user just unlocked a level, then should we reset the
+          // statistics to reflect the new better state? We probably don't want
+          // to make a user practice stuff forever just because there were a
+          // lot of previous failures for a set of keys. That's making the user
+          // a slave to the stats, and then they don't really reflect current
+          // reality.
         });
         draw_kb_stats(gs.noneDiv, $scope.layout, gs.stats, 'none');
         draw_kb_stats(gs.shiftDiv, $scope.layout, gs.stats, 'shift');
