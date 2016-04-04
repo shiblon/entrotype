@@ -29,6 +29,18 @@ function Stat(ch) {
   this.missesPerActual = {};
 }
 
+Stat.prototype.copy = function() {
+  var s = new Stat(this.ch);
+  s.hits = this.hits;
+  s.misses = this.misses;
+  s.lapses = this.lapses;
+  for (var k in this.missesPerAcutal) {
+    if (!this.missesPerActual.hasOwnProperty(k)) continue;
+    s.missesPerActual[k] = this.missesPerActual[k];
+  }
+  return s;
+};
+
 Stat.prototype.good = function() {
   return this.hits;
 };
@@ -76,6 +88,23 @@ KeyStats = function() {
   this.hits = 0;
   this.misses = 0;
   this.lapses = 0;
+};
+
+// Create a new KeyStats object taking statistics only for the given characters.
+// This is useful if you have, say, a query and a set of overall statistics.
+// You can calculate just the portion of those stats that apply to the query.
+KeyStats.prototype.subStats = function(chars) {
+  var ks = new KeyStats();
+  for (var i=0, len=chars.length; i<len; i++) {
+    var ch = chars[i];
+    var stat = this.keys[ch];
+    if (stat === undefined) continue;
+    ks.keys[ch] = stat.copy();
+    ks.hits += stat.hits || 0;
+    ks.misses += stat.misses || 0;
+    ks.lapses += stat.lapses || 0;
+  }
+  return ks;
 };
 
 KeyStats.prototype.keyStats = function(ch) {
