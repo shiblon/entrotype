@@ -112,6 +112,7 @@ angular.module('entrotypeControllers', [])
         $scope.$apply(function() {
           $scope.finished = true;
           $scope.running = false;
+          $scope.user.addStats($scope.path, gs.stats);
         });
         draw_kb_stats(gs.noneDiv, $scope.layout, gs.stats, 'none');
         draw_kb_stats(gs.shiftDiv, $scope.layout, gs.stats, 'shift');

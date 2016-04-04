@@ -17,7 +17,7 @@ User.prototype.addStats = function(path, keystats) {
   if (this._level_stats[path] == null) {
     this._level_stats[path] = new KeyStats();
   }
-  this._level_stats[path].mergeFrom(keyStats);
+  this._level_stats[path].mergeFrom(keystats);
   this._overall_stats.mergeFrom(keystats);
 };
 
