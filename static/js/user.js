@@ -3,8 +3,8 @@
 User = function(name, levels) {
   this._name = name;
   this._levels = levels;
+  this._level_stats = {};
   this._overall_stats = new KeyStats();
-  this._achievements = [];
   this._levels_unlocked = {};
   this._levels_beaten = {};
 }
@@ -13,8 +13,20 @@ User.prototype.name = function() {
   return this._name;
 };
 
-User.prototype.addStats = function(keystats) {
+User.prototype.addStats = function(path, keystats) {
+  if (this._level_stats[path] == null) {
+    this._level_stats[path] = new KeyStats();
+  }
+  this._level_stats[path].mergeFrom(keyStats);
   this._overall_stats.mergeFrom(keystats);
+};
+
+User.prototype.levelStats = function(path) {
+  return this._level_stats[path] || null;
+};
+
+User.prototype.overallStats = function() {
+  return this._overall_stats;
 };
 
 User.prototype.unlock = function(path) {

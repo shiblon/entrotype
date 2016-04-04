@@ -6,9 +6,17 @@ function _isa(child, parent) {
   child.prototype.constructor = child;
 }
 
+CANONICAL_PATH_SEP = '.';
+END_PATH_SEP = /[.]+$/;
+ALLOWED_PATH_SEPS = /[/.:|]/g;
+
+function normalizePath(path) {
+  return (path || "").replace(ALLOWED_PATH_SEPS, CANONICAL_PATH_SEP).replace(END_PATH_SEP, '');
+}
+
 function splitPath(path) {
-  path = (path || "").replace(/\/+$/, '');
-  nextSlash = path.indexOf('/');
+  path = normalizePath(path);
+  nextSlash = path.indexOf('.');
   if (nextSlash < 0) {
     return [path, ""];
   }
@@ -78,10 +86,10 @@ LNode.prototype.pathElements = function() {
 LNode.prototype.path = function() {
   var parent = this.parent();
   if (parent == null) {
-    return "/";
+    return CANONICAL_PATH_SEP;
   }
-  // Remove any trailing '/', then add this element.
-  return parent.path().replace(/\/+$/, '') + '/' + this.name();
+  // Remove any trailing path separator, then add this element.
+  return parent.path().replace(END_PATH_SEP, '') + CANONICAL_PATH_SEP + this.name();
 };
 LNode.prototype.search = function(relPath) {
   var ps = splitPath(relPath);

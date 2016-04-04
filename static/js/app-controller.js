@@ -31,8 +31,7 @@ angular.module('entrotypeControllers', [])
     }
     var query = $scope.layout.simplifyQuery(groupOrLevel.query());
     $scope.go('/game', {
-      'q': query,
-      'path': groupOrLevel.path()
+      'l': groupOrLevel.path()
     });
   };
 }])
@@ -56,18 +55,17 @@ angular.module('entrotypeControllers', [])
 
   $scope.again = function() { $route.reload() };
 
-  if ($routeParams.q != null) {
-    $scope.query = $routeParams.q;
-  } else {
-    throw "no query specified in URL search params";
+  $scope.path = $routeParams.l;
+  if ($scope.path == null) {
+    throw "no level specified in URL search params";
   }
 
-  if ($routeParams.path != null) {
-    $scope.path = $routeParams.path;
-  }
+  var level = $scope.levels.search($scope.path);
+  var query = level.query();
 
   (function() {
-    var keySet = $scope.layout.query($scope.query);
+    console.log('query', query);
+    var keySet = $scope.layout.query(query);
 
     function makeSkyFall(parent, config) {
       return new SkyFall(parent, function() {
