@@ -14,6 +14,7 @@ User.prototype.name = function() {
 };
 
 User.prototype.addStats = function(path, keystats) {
+  path = this._levels.normPath(path);
   if (this._level_stats[path] == null) {
     this._level_stats[path] = new KeyStats();
   }

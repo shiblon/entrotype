@@ -55,7 +55,7 @@ angular.module('entrotypeControllers', [])
 
   $scope.again = function() { $route.reload() };
 
-  $scope.path = $routeParams.l;
+  $scope.path = $scope.levels.normPath($routeParams.l);
   if ($scope.path == null) {
     throw "no level specified in URL search params";
   }

@@ -8,6 +8,7 @@ function _isa(child, parent) {
 
 CANONICAL_PATH_SEP = '.';
 END_PATH_SEP = /[.]+$/;
+BEGIN_PATH_SEP = /^[.]+/;
 ALLOWED_PATH_SEPS = /[/.:|]/g;
 
 function normalizePath(path) {
@@ -215,6 +216,13 @@ KBLevels.prototype.ls = function(path) {
     return [];
   }
   return gl.ls();
+};
+
+KBLevels.prototype.normPath = function(path) {
+  if (path == null) {
+    return null;
+  }
+  return normalizePath(path).replace(BEGIN_PATH_SEP, '');
 };
 
 KB_LEVELS = new KBLevels();
