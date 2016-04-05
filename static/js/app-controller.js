@@ -76,17 +76,17 @@ angular.module('entrotypeControllers', [])
       }, config);
     }
 
-    var gameParent = $('#game-container');
-
-    var seconds = 0;
-
     $scope.running = false;
     $scope.finished = false;
     $scope.paused = false;
 
-    gameParent.empty();
+    var seconds = 0;
+    var maxSuccessive = 0;
+    var currSuccessive = 0;
+
+    var gameParent = $('#game-container').empty();
     var gs = new SingleKeyGameScreen(gameParent, makeSkyFall, {
-      num: 1,
+      num: 20,
       countdownSeconds: 0,
       onstart: function() {
         console.log('started');
@@ -110,11 +110,22 @@ angular.module('entrotypeControllers', [])
           });
         }
       },
+      onhit: function() {
+        currSuccessive++;
+        maxSuccessive = Math.max(maxSuccessive, currSuccessive);
+      },
+      onmiss: function() {
+        currSuccessive = 0;
+      },
+      onlapse: function() {
+        currSuccessive = 0;
+      },
       onstop: function() {
         $scope.$apply(function() {
           $scope.finished = true;
           $scope.running = false;
           $scope.user.addStats($scope.path, gs.stats);
+          console.log("successive", maxSuccessive);
           // TODO: check whether this level was just beaten, and whether that
           // implies that something should be unlocked.
           // TODO: if the user just unlocked a level, then should we reset the
