@@ -83,7 +83,8 @@ angular.module('entrotypeControllers', [])
     var maxSuccessive = 0;
     var currSuccessive = 0;
 
-    var maxAttempts = 20;
+    var maxAttempts = 3*keySet.length;
+    var requiredSuccessive = 0.5*maxAttempts;
 
     var gameParent = $('#game-container').empty();
     var gs = new SingleKeyGameScreen(gameParent, makeSkyFall, {
@@ -113,7 +114,7 @@ angular.module('entrotypeControllers', [])
       onhit: function() {
         currSuccessive++;
         maxSuccessive = Math.max(maxSuccessive, currSuccessive);
-        if (maxSuccessive >= .75*maxAttempts) {
+        if (maxSuccessive >= requiredSuccessive) {
           gs.stop();
         }
       },
@@ -138,8 +139,8 @@ angular.module('entrotypeControllers', [])
           // a slave to the stats, and then they don't really reflect current
           // reality.
         });
-        draw_kb_stats(gs.noneDiv, $scope.layout, gs.stats, 'none');
-        draw_kb_stats(gs.shiftDiv, $scope.layout, gs.stats, 'shift');
+        draw_kb_stats(gs.noneDiv, $scope.layout, $scope.user.stats(), 'none');
+        draw_kb_stats(gs.shiftDiv, $scope.layout, $scope.user.stats(), 'shift');
       },
     });
 
