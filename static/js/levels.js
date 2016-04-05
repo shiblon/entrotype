@@ -12,6 +12,9 @@ BEGIN_PATH_SEP = /^[.]+/;
 ALLOWED_PATH_SEPS = /[/.:|]/g;
 
 function normalizePath(path) {
+  if (path == null) {
+    return null;
+  }
   return (path || "").replace(ALLOWED_PATH_SEPS, CANONICAL_PATH_SEP).replace(END_PATH_SEP, '');
 }
 
@@ -135,7 +138,7 @@ function Group(name, title, description, children) {
 }
 _isa(Group, LNode);
 
-function KBLevels(layout) {
+KBLevels = function(layout) {
   this._root = new Group('all', 'All Skills', 'All characters on the keyboard.', [
     new Group('home', 'Home Row', 'All keys on the home row.', [
       new Group('basic', 'Basic', 'Keys on the home row without modifier keys like shift.', [
@@ -218,12 +221,7 @@ KBLevels.prototype.ls = function(path) {
   return gl.ls();
 };
 
-KBLevels.prototype.normPath = function(path) {
-  if (path == null) {
-    return null;
-  }
-  return normalizePath(path).replace(BEGIN_PATH_SEP, '');
-};
+KBLevels.normPath = normalizePath;
 
 KB_LEVELS = new KBLevels();
 

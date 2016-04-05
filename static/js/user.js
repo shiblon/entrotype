@@ -1,8 +1,7 @@
 (function(undefined) {
 
-User = function(name, levels) {
+User = function(name) {
   this._name = name;
-  this._levels = levels;
   this._stats = new KeyStats();
   this._levels_unlocked = {};
   this._levels_beaten = {};
@@ -13,7 +12,7 @@ User.prototype.name = function() {
 };
 
 User.prototype.addStats = function(path, keystats) {
-  path = this._levels.normPath(path);
+  path = KBLevels.normPath(path);
   this._stats.mergeFrom(keystats);
 };
 
@@ -21,38 +20,54 @@ User.prototype.stats = function() {
   return this._stats;
 };
 
-User.prototype.unlock = function(path) {
-  var paths = this._levels.ls(path);
+function mapPaths(f, pathOrPaths) {
+  var paths = pathOrPaths;
+  if (typeof pathOrPaths === "string") {
+    paths = [pathOrPaths];
+  }
   for (var i=0, len=paths.length; i<len; i++) {
-    this._levels_unlocked[paths[i]] = true;
+    f(paths[i]);
   }
 };
 
-User.prototype.isUnlocked = function(path) {
-  var paths = this._levels.ls(path);
-  for (var i=0, len=paths.length; i<len; i++) {
-    if (!this._levels_unlocked[paths[i]]) {
-      return false;
-    }
+function reducePaths(f, initial, pathOrPaths) {
+  var paths = pathOrPaths;
+  if (typeof pathOrPaths === "string") {
+    paths = [pathOrPaths];
   }
-  return true;
+  var curr = initial;
+  for (var i=0, len=paths.length; i<len; i++) {
+    curr = f(curr, paths[i]);
+  }
+  return curr;
 };
 
-User.prototype.beat = function(path) {
-  var paths = this._levels.ls(path);
-  for (var i=0, len=paths.length; i<len; i++) {
-    this._levels_beaten[paths[i]] = true;
-  }
+User.prototype.unlock = function(pathOrPaths) {
+  var that = this;
+  mapPaths(function(path) {
+    that._levels_unlocked[path] = true;
+  }, pathOrPaths);
 };
 
-User.prototype.isBeaten = function(path) {
-  var paths = this._levels.ls(path);
-  for (var i=0, len=paths.length; i<len; i++) {
-    if (!this._levels_beaten[paths[i]]) {
-      return false;
-    }
-  }
-  return true;
+User.prototype.unlocked = function(pathOrPaths) {
+  var that = this;
+  return reducePaths(function(prev, path) {
+    return prev && that._levels_unlocked[path];
+  }, pathOrPaths);
+};
+
+User.prototype.beat = function(pathOrPaths) {
+  var that = this;
+  mapPaths(function(path) {
+    that._levels_beaten[path] = true;
+  }, pathOrPaths);
+};
+
+User.prototype.beaten = function(pathOrPaths) {
+  var that = this;
+  return reducePaths(function(prev, path) {
+    return prev && that._levels_beaten[path];
+  }, pathOrPaths);
 };
 
 }());

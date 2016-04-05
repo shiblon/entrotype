@@ -17,11 +17,13 @@ angular.module('entrotypeControllers', [])
   $scope.user.unlock("/home/basic");
 
   $scope.isBeaten = function(groupOrLevel) {
-    return $scope.user.isBeaten(groupOrLevel.path());
+    var paths = groupOrLevel.ls();
+    return $scope.user.beaten(paths);
   };
 
   $scope.isUnlocked = function(groupOrLevel) {
-    return $scope.isBeaten(groupOrLevel) || $scope.user.isUnlocked(groupOrLevel.path());
+    var paths = groupOrLevel.ls();
+    return $scope.user.beaten(paths) || $scope.user.unlocked(paths);
   };
 }])
 .controller('FreeplayListCtrl', ['$scope', function($scope) {
@@ -55,7 +57,7 @@ angular.module('entrotypeControllers', [])
 
   $scope.again = function() { $route.reload() };
 
-  $scope.path = $scope.levels.normPath($routeParams.l);
+  $scope.path = KBLevels.normPath($routeParams.l);
   if ($scope.path == null) {
     throw "no level specified in URL search params";
   }
