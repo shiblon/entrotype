@@ -66,7 +66,6 @@ angular.module('entrotypeControllers', [])
   var query = KeyboardLayout.simplify(level.query());
 
   (function() {
-    console.log('query', query);
     var keySet = $scope.layout.query(query);
 
     function makeSkyFall(parent, config) {
@@ -84,12 +83,13 @@ angular.module('entrotypeControllers', [])
     var maxSuccessive = 0;
     var currSuccessive = 0;
 
+    var maxAttempts = 20;
+
     var gameParent = $('#game-container').empty();
     var gs = new SingleKeyGameScreen(gameParent, makeSkyFall, {
-      num: 20,
+      num: maxAttempts,
       countdownSeconds: 0,
       onstart: function() {
-        console.log('started');
         $scope.$apply(function() {
           $scope.clock = clockStr(seconds);
           $scope.running = true;
@@ -113,6 +113,9 @@ angular.module('entrotypeControllers', [])
       onhit: function() {
         currSuccessive++;
         maxSuccessive = Math.max(maxSuccessive, currSuccessive);
+        if (maxSuccessive >= .75*maxAttempts) {
+          gs.stop();
+        }
       },
       onmiss: function() {
         currSuccessive = 0;

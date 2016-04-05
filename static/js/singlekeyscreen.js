@@ -8,19 +8,15 @@ SingleKeyGameScreen = function(parent, makeGame, gameConfig) {
 
   var config = GameScreen.mergeConfigs(gameConfig, {
     onhit: function(ch) {
-      console.log('hit', ch);
       stats.addHit(ch);
     },
     onmiss: function(ch, actual) {
-      console.log('miss', ch, actual);
       stats.addMiss(ch, actual);
     },
     onlapse: function(ch) {
-      console.log('lapse', ch);
       stats.addLapse(ch);
     },
     onfinished: function() {
-      console.log(stats);
       $('#s-done-summary')
       .append($('<div>')
               .text('hits: ' + stats.hits))
@@ -35,7 +31,6 @@ SingleKeyGameScreen = function(parent, makeGame, gameConfig) {
         var s = sample();
         samples[s] = (samples[s] || 0) + 1;
       }
-      console.log('sample hist', samples);
     },
   });
 

@@ -118,6 +118,13 @@ GameScreen.prototype.start = function() {
   }
 };
 
+GameScreen.prototype.stop = function() {
+  if (this.started) {
+    this.started = false;
+    this._game.stop();
+  }
+};
+
 GameScreen.mergeConfigs = function(mainConfig, toMerge) {
   mainConfig = mainConfig || {};
   toMerge = toMerge || {};

@@ -25,12 +25,18 @@ function mapPaths(f, pathOrPaths) {
   if (typeof pathOrPaths === "string") {
     paths = [pathOrPaths];
   }
+  if (typeof pathOrPaths === "undefined") {
+    return;
+  }
   for (var i=0, len=paths.length; i<len; i++) {
     f(paths[i]);
   }
 };
 
 function reducePaths(f, initial, pathOrPaths) {
+  if (!pathOrPaths) {
+    return undefined;
+  }
   var paths = pathOrPaths;
   if (typeof pathOrPaths === "string") {
     paths = [pathOrPaths];
