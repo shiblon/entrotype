@@ -7,6 +7,22 @@ User = function(name) {
   this._levels_beaten = {};
 }
 
+User.fromObj = function(obj) {
+  this._name = obj.name;
+  this._stats = KeyStats.fromObj(obj.stats);
+  this._levels_unlocked = obj.levels_unlocked;
+  this._levels_beaten = obj.levels_beaten;
+};
+
+User.prototype.obj = function() {
+  return {
+    name: this.name(),
+    stats: this.stats(),
+    levels_unlocked: this._levels_unlocked,
+    levels_beaten: this._levels_beaten,
+  };
+};
+
 User.prototype.name = function() {
   return this._name;
 };

@@ -13,12 +13,14 @@ angular.module('entrotypeControllers', [])
   };
 
   // TODO: Make this real.
+  $scope.userKey = function(keyPath) {
+    return "entrotype-user." + keyPath;
+  };
   $scope.user = new User("Test User", $scope.levels);
   $scope.user.unlock("/home/basic");
 
   $scope.isBeaten = function(groupOrLevel) {
-    var paths = groupOrLevel.ls();
-    return $scope.user.beaten(paths);
+    return $scope.user.beaten(groupOrLevel.ls());
   };
 
   $scope.isUnlocked = function(groupOrLevel) {
@@ -114,9 +116,6 @@ angular.module('entrotypeControllers', [])
       onhit: function() {
         currSuccessive++;
         maxSuccessive = Math.max(maxSuccessive, currSuccessive);
-        if (maxSuccessive >= requiredSuccessive) {
-          gs.stop();
-        }
       },
       onmiss: function() {
         currSuccessive = 0;
@@ -130,8 +129,13 @@ angular.module('entrotypeControllers', [])
           $scope.running = false;
           $scope.user.addStats($scope.path, gs.stats);
           console.log("successive", maxSuccessive);
+
           // TODO: check whether this level was just beaten, and whether that
           // implies that something should be unlocked.
+          if (gs.stats.good() / gs.stats.all() > 0.8
+              || maxSuccessive >= requiredSuccessive) {
+            console.log('beaten');
+          }
           // TODO: if the user just unlocked a level, then should we reset the
           // statistics to reflect the new better state? We probably don't want
           // to make a user practice stuff forever just because there were a

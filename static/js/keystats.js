@@ -90,6 +90,18 @@ KeyStats = function() {
   this.lapses = 0;
 };
 
+KeyStats.prototype.good = function() {
+  return this.hits;
+};
+
+KeyStats.prototype.all = function() {
+  return this.hits + this.lapses + this.misses;
+};
+
+KeyStats.prototype.bad = function() {
+  return this.lapses + this.misses;
+};
+
 // Create a new KeyStats object taking statistics only for the given characters.
 // This is useful if you have, say, a query and a set of overall statistics.
 // You can calculate just the portion of those stats that apply to the query.
