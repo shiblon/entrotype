@@ -43,8 +43,8 @@ angular.module('entrotypeControllers', [])
     // TODO: do this elsewhere, perhaps?
     var beginningQuery = findBeginningGroup($scope.levels).query();
     console.log("beginning query", beginningQuery);
-    if (!user.unlocked($scope.layout.name, beginningQuery)) {
-      user.unlock($scope.layout.name, beginningQuery);
+    if (!user.unlocked($scope.layout.name(), beginningQuery)) {
+      user.unlock($scope.layout.name(), beginningQuery);
     }
     currUser = user;
     return user;
@@ -93,13 +93,13 @@ angular.module('entrotypeControllers', [])
   };
 
   $scope.isBeaten = function(groupOrLevel) {
-    return getCurrentUserOrGuest().beaten($scope.layout.name, groupOrLevel.query());
+    return getCurrentUserOrGuest().beaten($scope.layout.name(), groupOrLevel.query());
   };
 
   $scope.isUnlocked = function(groupOrLevel) {
     var user = getCurrentUserOrGuest();
     var query = groupOrLevel.query();
-    var ln = $scope.layout.name;
+    var ln = $scope.layout.name();
     return user.beaten(ln, query) || user.unlocked(ln, query);
   };
 }])
@@ -218,9 +218,10 @@ angular.module('entrotypeControllers', [])
           // a slave to the stats, and then they don't really reflect current
           // reality.
           $scope.withCurrentUser(function(user) {
-            user.addStats($scope.path, gs.stats);
-            draw_kb_stats(gs.noneDiv, $scope.layout, user.stats(), 'none');
-            draw_kb_stats(gs.shiftDiv, $scope.layout, user.stats(), 'shift');
+            user.addStats($scope.layout.name(), gs.stats);
+            var userStats = user.stats($scope.layout.name());
+            draw_kb_stats(gs.noneDiv, $scope.layout, userStats, 'none');
+            draw_kb_stats(gs.shiftDiv, $scope.layout, userStats, 'shift');
           });
         });
       },

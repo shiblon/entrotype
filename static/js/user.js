@@ -38,7 +38,7 @@ function UserLayout(id) {
 UserLayout.fromObj = function(obj) {
   var l = Object.create(UserLayout.prototype);
   l.id = obj.id;
-  l.stats = obj.stats;
+  l.stats = KeyStats.fromObj(obj.stats);
   l.query_unlocked = obj.query_unlocked;
   l.query_beaten = obj.query_beaten;
   return l;
@@ -47,7 +47,7 @@ UserLayout.fromObj = function(obj) {
 UserLayout.prototype.toObj = function() {
   return {
     id: this.id,
-    stats: this.stats,
+    stats: this.stats.toObj(),
     query_unlocked: this.query_unlocked,
     query_beaten: this.query_beaten,
   };
@@ -87,11 +87,10 @@ User.fromObj = function(obj) {
 };
 
 User.prototype.toObj = function() {
-  // TODO: convert each layout to obj
   var layouts = {};
   for (var k in this._layouts) {
     if (!this._layouts.hasOwnProperty(k)) continue;
-    layouts[k] = this._layouts[k];
+    layouts[k] = this._layouts[k].toObj();
   }
   return {
     name: this.name(),
