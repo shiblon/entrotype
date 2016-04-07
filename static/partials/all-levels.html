@@ -8,11 +8,11 @@
   }
 </style>
 <div id="freeplay-container" class="content-container">
-  <div ng-repeat="supergroup in levels.root().children()" class="supergroup">
+  <div ng-repeat="supergroup in levels.root().children()" class="supergroup" ng-class="{locked: !isUnlocked(supergroup), beatne: isBeaten(supergroup)}">
     <div class="title-supergroup">
       {{ supergroup.title() }}
     </div>
-    <div ng-repeat="group in supergroup.children()" class="group">
+    <div ng-repeat="group in supergroup.children()" class="group" ng-class="{locked: !isUnlocked(group), beaten: isBeaten(group)}">
       <div class="title-group">
         {{ group.title() }}
       </div>

@@ -50,6 +50,26 @@ LNode.prototype.parent = function(parent) {
   }
   return this._parent;
 };
+LNode.prototype.prevSibling = function() {
+  var parent = this.parent();
+  if (parent == null) {
+    return null;
+  }
+  var pc = parent.children();
+  var thisIndex = -1;
+  // NOTE: this is linear in children of the parent. Not the smartest
+  // algorithm, but levels are small, so it's probably still plenty fast.
+  for (var i=0, len=pc.length; i<len; i++) {
+    if (pc[i] === this) {
+      thisIndex = i;
+      break;
+    }
+  }
+  if (thisIndex <= 0) {
+    return null;
+  }
+  return pc[thisIndex-1];
+};
 LNode.prototype.nextSibling = function() {
   var parent = this.parent();
   if (parent == null) {
@@ -71,6 +91,8 @@ LNode.prototype.nextSibling = function() {
   return pc[thisIndex+1];
 };
 LNode.prototype.children = function() { return this._children || null };
+LNode.prototype.child = function(i) { return (this._children || [])[i] || null };
+LNode.prototype.numChildren = function() { return (this._children || []).length };
 LNode.prototype.isGroup = function() { return this.children() != null };
 LNode.prototype.name = function() { return this._name };
 LNode.prototype.title = function() { return this._title };

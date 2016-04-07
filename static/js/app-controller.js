@@ -15,7 +15,7 @@ angular.module('entrotypeControllers', [])
   function findBeginningGroup(levels) {
     var curr = levels.root();
     while (curr != null && curr.isGroup()) {
-      curr = curr.children()[0];
+      curr = curr.child(0);
     }
     return curr.parent();
   }
@@ -28,27 +28,20 @@ angular.module('entrotypeControllers', [])
   $scope.username = 'guest';
 
   var currUser = null;
-
-  function getCurrentUserOrGuest() {
+  $scope.getCurrentUserOrGuest = function() {
     if (currUser != null && currUser.name() === $scope.username) {
       return currUser;
     }
     var userObj = stGet(userKey($scope.username));
     var user;
     if (userObj == null) {
-      user = new User("guest");
+      user = new User($scope.username);
     } else {
       user = User.fromObj(userObj);
     }
-    // TODO: do this elsewhere, perhaps?
-    var beginningQuery = findBeginningGroup($scope.levels).query();
-    console.log("beginning query", beginningQuery);
-    if (!user.unlocked($scope.layout.name(), beginningQuery)) {
-      user.unlock($scope.layout.name(), beginningQuery);
-    }
-    currUser = user;
+    currUser = user; // memoize
     return user;
-  }
+  };
 
   $scope.userExists = function(name) {
     return stListMatching(new RexExp("^" + userKey(name) + "$")).length > 0;
@@ -65,9 +58,9 @@ angular.module('entrotypeControllers', [])
     }
     return users;
   };
-  $scope.getCurrentUser = getCurrentUserOrGuest;
   $scope.withCurrentUser = function(f) {
-    var user = getCurrentUserOrGuest();
+    currUser = null; // ensure that next call to "get" will go out to storage.
+    var user = $scope.getCurrentUserOrGuest();
     try {
       var oldName = user.name();
       if (f(user) === false) {
@@ -93,14 +86,33 @@ angular.module('entrotypeControllers', [])
   };
 
   $scope.isBeaten = function(groupOrLevel) {
-    return getCurrentUserOrGuest().beaten($scope.layout.name(), groupOrLevel.query());
+    var user = $scope.getCurrentUserOrGuest();
+    var lname = $scope.layout.name();
+    return user.beaten($scope.layout.name(), groupOrLevel.query());
   };
 
   $scope.isUnlocked = function(groupOrLevel) {
-    var user = getCurrentUserOrGuest();
-    var query = groupOrLevel.query();
-    var ln = $scope.layout.name();
-    return user.beaten(ln, query) || user.unlocked(ln, query);
+    // Levels don't determine unlockedness - go up a level and start the rael algorithm.
+    var g = groupOrLevel;
+    if (!g.isGroup()) {
+      g = g.parent();
+    }
+
+    // A group is unlocked if
+    // 1. Its immediate (previous) sibling is beaten, or if it has no immediate sibling,
+    // 2. The immediate sibling of its parent is beaten (recursively up the tree),
+    // 3. There is no immediate sibling for it or any of its parents.
+    while (g != null) {
+      var s = g.prevSibling();
+      if (s != null) {
+        return $scope.isBeaten(s);
+      }
+      g = g.parent();
+    }
+    // Didn't find any parent siblings, so this is unlocked.
+    if (g == null) {
+      return true;
+    }
   };
 }])
 .controller('FreeplayListCtrl', ['$scope', function($scope) {
@@ -203,14 +215,7 @@ angular.module('entrotypeControllers', [])
         $scope.$apply(function() {
           $scope.finished = true;
           $scope.running = false;
-          console.log("successive", maxSuccessive);
 
-          // TODO: check whether this level was just beaten, and whether that
-          // implies that something should be unlocked.
-          if (gs.stats.good() >= requiredGood
-              || maxSuccessive >= requiredSuccessive) {
-            console.log('beaten');
-          }
           // TODO: if the user just unlocked a level, then should we reset the
           // statistics to reflect the new better state? We probably don't want
           // to make a user practice stuff forever just because there were a
@@ -218,10 +223,15 @@ angular.module('entrotypeControllers', [])
           // a slave to the stats, and then they don't really reflect current
           // reality.
           $scope.withCurrentUser(function(user) {
-            user.addStats($scope.layout.name(), gs.stats);
-            var userStats = user.stats($scope.layout.name());
-            draw_kb_stats(gs.noneDiv, $scope.layout, userStats, 'none');
-            draw_kb_stats(gs.shiftDiv, $scope.layout, userStats, 'shift');
+            var lname = $scope.layout.name();
+            user.addStats(lname, gs.stats);
+            // TODO: refine criteria for beating a level. Minimum number of attempts?
+            if (gs.stats.good() >= requiredGood
+                || maxSuccessive >= requiredSuccessive) {
+              user.beat(lname, query);
+            }
+            draw_kb_stats(gs.noneDiv, $scope.layout, user.stats(lname), 'none');
+            draw_kb_stats(gs.shiftDiv, $scope.layout, user.stats(lname), 'shift');
           });
         });
       },

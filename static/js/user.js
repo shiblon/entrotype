@@ -1,6 +1,6 @@
 (function(undefined) {
 
-function mergeQueriesIgnoringEmpty(_args_) {
+function mergeQueriesIgnoringEmpty(_) {
   var usable = [];
   for (var i=0, len=arguments.length; i<len; i++) {
     var q = arguments[i];
@@ -31,7 +31,6 @@ function queryContainedIn(subQuery, superQuery) {
 function UserLayout(id) {
   this.id = id;
   this.stats = new KeyStats();
-  this.query_unlocked = null;
   this.query_beaten = null;
 }
 
@@ -39,7 +38,6 @@ UserLayout.fromObj = function(obj) {
   var l = Object.create(UserLayout.prototype);
   l.id = obj.id;
   l.stats = KeyStats.fromObj(obj.stats);
-  l.query_unlocked = obj.query_unlocked;
   l.query_beaten = obj.query_beaten;
   return l;
 };
@@ -48,22 +46,12 @@ UserLayout.prototype.toObj = function() {
   return {
     id: this.id,
     stats: this.stats.toObj(),
-    query_unlocked: this.query_unlocked,
     query_beaten: this.query_beaten,
   };
 };
 
-UserLayout.prototype.unlock = function(query) {
-  this.query_unlocked = mergeQueriesIgnoringEmpty(this.query_unlocked, query);
-};
-
 UserLayout.prototype.beat = function(query) {
   this.query_beaten = mergeQueriesIgnoringEmpty(this.query_beaten, query);
-};
-
-UserLayout.prototype.unlocked = function(query) {
-  console.debug('userlayout unlock query:', query, 'already unlocked:', this.query_unlocked);
-  return queryContainedIn(query, this.query_unlocked);
 };
 
 UserLayout.prototype.beaten = function(query) {
@@ -80,8 +68,8 @@ User.fromObj = function(obj) {
   user._name = obj.name;
   user._layouts = {};
   for (var k in obj.layouts) {
-    if (!obj.hasOwnProperty(k)) continue;
-    user._layouts[k] = UserLayout.fromObj(obj[k]);
+    if (!obj.layouts.hasOwnProperty(k)) continue;
+    user._layouts[k] = UserLayout.fromObj(obj.layouts[k]);
   }
   return user;
 };
@@ -118,14 +106,6 @@ User.prototype.addStats = function(layoutName, keystats) {
 
 User.prototype.stats = function(layoutName) {
   return this.layout(layoutName).stats;
-};
-
-User.prototype.unlock = function(layoutName, query) {
-  this.layout(layoutName).unlock(query);
-};
-
-User.prototype.unlocked = function(layoutName, query) {
-  return this.layout(layoutName).unlocked(query);
 };
 
 User.prototype.beat = function(layoutName, query) {
