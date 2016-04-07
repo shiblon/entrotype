@@ -12,20 +12,71 @@ angular.module('entrotypeControllers', [])
     });
   };
 
-  // TODO: Make this real.
-  $scope.userKey = function(keyPath) {
-    return "entrotype-user." + keyPath;
+  // TODO: make this real
+  $scope.username = 'guest';
+  $scope.userKey = function(name) {
+    return "entrotype-user=" + name;
   };
-  $scope.user = new User("Test User", $scope.levels);
-  $scope.user.unlock("/home/basic");
-
-  $scope.isBeaten = function(groupOrLevel) {
-    return $scope.user.beaten(groupOrLevel.ls());
+  $scope.userExists = function(name) {
+    return stListMatching(new RexExp("^" + $scope.userKey(name) + "$")).length > 0;
+  };
+  $scope.userList = function() {
+    var matches = stListMatchGroups(/^entrotype-user=(.*)$/);
+    if (matches.length == 0) {
+      return ["guest"];
+    }
+    var users = [];
+    for (var i=0, len=matches.length; i<len; i++) {
+      var groups = matches[i];
+      users.push(groups[1]);
+    }
+    return users;
+  };
+  $scope.getCurrentUser = function() {
+    var userObj = stGet($scope.userKey($scope.username));
+    if (userObj == null) {
+      return new User("guest");
+      // TODO: unlock first level somehow.
+    }
+    return User.fromObj(userObj);
+  };
+  $scope.updateUser = function(user) {
+    console.log('updating user', user)
+    stSet($scope.userKey(user.name()), user.toObj());
+  };
+  $scope.withCurrentUser = function(f) {
+    var user = $scope.getCurrentUser();
+    try {
+      var oldName = user.name();
+      if (f(user) === false) {
+        return false;
+      }
+      // If renamed, ensure that the new name doesn't have collisions before blindly updating.
+      if (oldName !== user.name()) {
+        if ($scope.userExists(user.name())) {
+          console.error("failed user rename to exising user:", user.name());
+          return;
+        }
+      }
+      $scope.updateUser(user);
+      // If the user got renamed, then we need to delete the old one and
+      // remember the new one as the current username.
+      if (oldName !== user.name()) {
+        stRemove($scope.userKey(oldName));
+        $scope.username = user.name();
+      }
+    } catch(err) {
+      console.error("error executing " + f + " or updating user:", err)
+    }
   };
 
-  $scope.isUnlocked = function(groupOrLevel) {
+  $scope.isBeaten = function(user, groupOrLevel) {
+    return user.beaten(groupOrLevel.ls());
+  };
+
+  $scope.isUnlocked = function(user, groupOrLevel) {
     var paths = groupOrLevel.ls();
-    return $scope.user.beaten(paths) || $scope.user.unlocked(paths);
+    return user.beaten(paths) || user.unlocked(paths);
   };
 }])
 .controller('FreeplayListCtrl', ['$scope', function($scope) {
@@ -85,8 +136,9 @@ angular.module('entrotypeControllers', [])
     var maxSuccessive = 0;
     var currSuccessive = 0;
 
-    var maxAttempts = 3*keySet.length;
-    var requiredSuccessive = 0.5*maxAttempts;
+    var maxAttempts = $routeParams.n || 3*keySet.length;
+    var requiredSuccessive = 1.5*keySet.length;
+    var requiredGood = 0.8*keySet.length;
 
     var gameParent = $('#game-container').empty();
     var gs = new SingleKeyGameScreen(gameParent, makeSkyFall, {
@@ -127,12 +179,11 @@ angular.module('entrotypeControllers', [])
         $scope.$apply(function() {
           $scope.finished = true;
           $scope.running = false;
-          $scope.user.addStats($scope.path, gs.stats);
           console.log("successive", maxSuccessive);
 
           // TODO: check whether this level was just beaten, and whether that
           // implies that something should be unlocked.
-          if (gs.stats.good() / gs.stats.all() > 0.8
+          if (gs.stats.good() >= requiredGood
               || maxSuccessive >= requiredSuccessive) {
             console.log('beaten');
           }
@@ -143,8 +194,11 @@ angular.module('entrotypeControllers', [])
           // a slave to the stats, and then they don't really reflect current
           // reality.
         });
-        draw_kb_stats(gs.noneDiv, $scope.layout, $scope.user.stats(), 'none');
-        draw_kb_stats(gs.shiftDiv, $scope.layout, $scope.user.stats(), 'shift');
+        $scope.withCurrentUser(function(user) {
+          user.addStats($scope.path, gs.stats);
+          draw_kb_stats(gs.noneDiv, $scope.layout, user.stats(), 'none');
+          draw_kb_stats(gs.shiftDiv, $scope.layout, user.stats(), 'shift');
+        });
       },
     });
 

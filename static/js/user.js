@@ -8,22 +8,27 @@ User = function(name) {
 }
 
 User.fromObj = function(obj) {
-  this._name = obj.name;
-  this._stats = KeyStats.fromObj(obj.stats);
-  this._levels_unlocked = obj.levels_unlocked;
-  this._levels_beaten = obj.levels_beaten;
+  var user = Object.create(User.prototype);
+  user._name = obj.name;
+  user._stats = KeyStats.fromObj(obj.stats);
+  user._levels_unlocked = obj.levels_unlocked;
+  user._levels_beaten = obj.levels_beaten;
+  return user;
 };
 
-User.prototype.obj = function() {
+User.prototype.toObj = function() {
   return {
     name: this.name(),
-    stats: this.stats(),
+    stats: this.stats().toObj(),
     levels_unlocked: this._levels_unlocked,
     levels_beaten: this._levels_beaten,
   };
 };
 
-User.prototype.name = function() {
+User.prototype.name = function(val) {
+  if (typeof val !== "undefined") {
+    this._name = val;
+  }
   return this._name;
 };
 

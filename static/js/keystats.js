@@ -244,13 +244,17 @@ KeyStats.prototype.heatRGBForChar = function(ch) {
   return this.keyStats(ch).heatRGB();
 };
 
-KeyStats.prototype.toJSON = function(jfunc, jsep) {
-  return JSON.stringify({
+KeyStats.prototype.toObj = function() {
+  return {
     hits: this.hits,
     misses: this.misses,
     lapses: this.lapses,
     keys: this.keys,
-  }, jfunc, jsep);
+  };
+};
+
+KeyStats.prototype.toJSON = function(jfunc, jsep) {
+  return JSON.stringify(this.toObj(), jfunc, jsep);
 };
 
 KeyStats.fromObj = function(obj) {
