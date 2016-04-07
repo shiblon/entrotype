@@ -50,6 +50,26 @@ LNode.prototype.parent = function(parent) {
   }
   return this._parent;
 };
+LNode.prototype.nextSibling = function() {
+  var parent = this.parent();
+  if (parent == null) {
+    return null;
+  }
+  var pc = parent.children();
+  var thisIndex = -1;
+  // NOTE: this is linear in children of the parent. Not the smartest
+  // algorithm, but levels are small, so it's probably still plenty fast.
+  for (var i=0, len=pc.length; i<len; i++) {
+    if (pc[i] === this) {
+      thisIndex = i;
+      break;
+    }
+  }
+  if (thisIndex < 0 || thisIndex+1 >= pc.length) {
+    return null;
+  }
+  return pc[thisIndex+1];
+};
 LNode.prototype.children = function() { return this._children || null };
 LNode.prototype.isGroup = function() { return this.children() != null };
 LNode.prototype.name = function() { return this._name };
@@ -57,7 +77,7 @@ LNode.prototype.title = function() { return this._title };
 LNode.prototype.description = function() { return this._description };
 LNode.prototype.query =  function() {
   if (this._query !== undefined) {
-    return this._query;
+    return KeyboardLayout.simplify(this._query);
   }
   var queries = [];
   var children = this.children();
@@ -67,7 +87,7 @@ LNode.prototype.query =  function() {
   for (var i=0, len=children.length; i<len; i++) {
     queries.push(children[i].query());
   }
-  return queries.join(",");
+  return KeyboardLayout.simplify(queries);
 };
 LNode.prototype.ls = function() {
   if (!this.isGroup()) {

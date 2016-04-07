@@ -34,7 +34,7 @@
 </style>
 <div id="game-main" class="content-container">
   <div class="game-header">
-    <div id="path" ng-class="{'no-display': path == null}">{{ path }}</div
+    <div id="path" ng-class="{'no-display': path == null}">{{ username }}{{ path }}</div
     ><div id="clock" ng-class="{'no-display': !(running || finished)}">{{ clock }}</div>
   </div>
   <div id="game-container" class="game-field"></div>

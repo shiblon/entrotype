@@ -142,6 +142,47 @@ function joinSpec(spec) {
   return spec.rows + spec.hands + spec.fingers + spec.modifiers;
 }
 
+// Set empty classes to fully-represented.
+function expandedSpec(spec) {
+  var s = canonicalizedSpec(spec);
+  if (s.rows === "") {
+    s.rows = CLASS_ROW;
+  }
+  if (s.hands === "") {
+    s.hands = CLASS_HAND;
+  }
+  if (s.fingers === "") {
+    s.fingers = CLASS_FINGER;
+  }
+  if (s.modifiers === "") {
+    s.modifiers = CLASS_MODIFIER;
+  }
+  return s;
+}
+
+// Returns a list of single-member-per-class specs represented by this
+// potentially-conglomerate spec.
+function explodeSpec(spec) {
+  spec = expandedSpec(spec);
+  var specs = [];
+  for (var ri in spec.rows) {
+    for (var hi in spec.hands) {
+      for (var fi in spec.fingers) {
+        for (var mi in spec.modifiers) {
+          specs.push(joinSpec({
+            rows: spec.rows[ri],
+            hands: spec.hands[hi],
+            fingers: spec.fingers[fi],
+            modifiers: spec.modifiers[mi],
+          }));
+        }
+      }
+    }
+  }
+  return specs;
+}
+
+// Set fully-represented classes to empty.
 function canonicalizedSpec(spec) {
   // If all members of a class are represented, we omit that class.
   var s = {};
@@ -150,16 +191,16 @@ function canonicalizedSpec(spec) {
   s.fingers = uniquifiedString(spec.fingers);
   s.modifiers = uniquifiedString(spec.modifiers);
 
-  if (s.rows == CLASS_ROW) {
+  if (s.rows === CLASS_ROW) {
     s.rows = "";
   }
-  if (s.hands == CLASS_HAND) {
+  if (s.hands === CLASS_HAND) {
     s.hands = "";
   }
-  if (s.fingers == CLASS_FINGER) {
+  if (s.fingers === CLASS_FINGER) {
     s.fingers = "";
   }
-  if (s.modifiers == CLASS_MODIFIER) {
+  if (s.modifiers === CLASS_MODIFIER) {
     s.modifiers = "";
   }
 
@@ -219,9 +260,23 @@ KeyboardLayout = function(configuration) {
       ["Numbers Row Shifted", ["N2!", "N3!", "N4!", "N5!", "N16!"]]]);
 };
 
-// Given a list of queries, return a more minimal list if possible.
-// It will favor readability over minimalism, grouping things by modifier, row,
+// Given a list of queries (or a single string), return a fully-expanded list
+// of query strings, where each string completely qualifies the modifiers,
 // hand, and finger.
+var expand = KeyboardLayout.expand = function(qlist) {
+  qlist = canonicalizedQuery(flattenQuery(qlist));
+  var expanded = [];
+  for (var qi in qlist) {
+    var q = qlist[qi];
+    var specs = explodeSpec(splitSpecStr(q));
+    expanded = expanded.concat(specs);
+  }
+  return uniquifiedArray(expanded);
+};
+
+// Given a list of queries, return a more minimal string if possible.
+// It will favor readability over minimalism, grouping things by modifier, row,
+// hand, and finger. The string will be a comma-delimited list of queries.
 var simplify = KeyboardLayout.simplify = function(qlist) {
   qlist = flattenQuery(qlist);
   var canonical = canonicalizedQuery(qlist);
@@ -290,7 +345,7 @@ var simplify = KeyboardLayout.simplify = function(qlist) {
   for (var i in specs) {
     queries.push(joinSpec(specs[i]));
   }
-  return queries;
+  return queries.join(",");
 };
 
 KeyboardLayout.prototype.configKey = function(modifier, row, col) {

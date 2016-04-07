@@ -12,13 +12,46 @@ angular.module('entrotypeControllers', [])
     });
   };
 
-  // TODO: make this real
-  $scope.username = 'guest';
-  $scope.userKey = function(name) {
+  function findBeginningGroup(levels) {
+    var curr = levels.root();
+    while (curr != null && curr.isGroup()) {
+      curr = curr.children()[0];
+    }
+    return curr.parent();
+  }
+
+  function userKey(name) {
     return "entrotype-user=" + name;
-  };
+  }
+
+  // TODO: make this selectable
+  $scope.username = 'guest';
+
+  var currUser = null;
+
+  function getCurrentUserOrGuest() {
+    if (currUser != null && currUser.name() === $scope.username) {
+      return currUser;
+    }
+    var userObj = stGet(userKey($scope.username));
+    var user;
+    if (userObj == null) {
+      user = new User("guest");
+    } else {
+      user = User.fromObj(userObj);
+    }
+    // TODO: do this elsewhere, perhaps?
+    var beginningQuery = findBeginningGroup($scope.levels).query();
+    console.log("beginning query", beginningQuery);
+    if (!user.unlocked($scope.layout.name, beginningQuery)) {
+      user.unlock($scope.layout.name, beginningQuery);
+    }
+    currUser = user;
+    return user;
+  }
+
   $scope.userExists = function(name) {
-    return stListMatching(new RexExp("^" + $scope.userKey(name) + "$")).length > 0;
+    return stListMatching(new RexExp("^" + userKey(name) + "$")).length > 0;
   };
   $scope.userList = function() {
     var matches = stListMatchGroups(/^entrotype-user=(.*)$/);
@@ -32,20 +65,9 @@ angular.module('entrotypeControllers', [])
     }
     return users;
   };
-  $scope.getCurrentUser = function() {
-    var userObj = stGet($scope.userKey($scope.username));
-    if (userObj == null) {
-      return new User("guest");
-      // TODO: unlock first level somehow.
-    }
-    return User.fromObj(userObj);
-  };
-  $scope.updateUser = function(user) {
-    console.log('updating user', user)
-    stSet($scope.userKey(user.name()), user.toObj());
-  };
+  $scope.getCurrentUser = getCurrentUserOrGuest;
   $scope.withCurrentUser = function(f) {
-    var user = $scope.getCurrentUser();
+    var user = getCurrentUserOrGuest();
     try {
       var oldName = user.name();
       if (f(user) === false) {
@@ -58,11 +80,11 @@ angular.module('entrotypeControllers', [])
           return;
         }
       }
-      $scope.updateUser(user);
+      stSet(userKey(user.name()), user.toObj());
       // If the user got renamed, then we need to delete the old one and
       // remember the new one as the current username.
       if (oldName !== user.name()) {
-        stRemove($scope.userKey(oldName));
+        stRemove(userKey(oldName));
         $scope.username = user.name();
       }
     } catch(err) {
@@ -70,13 +92,15 @@ angular.module('entrotypeControllers', [])
     }
   };
 
-  $scope.isBeaten = function(user, groupOrLevel) {
-    return user.beaten(groupOrLevel.ls());
+  $scope.isBeaten = function(groupOrLevel) {
+    return getCurrentUserOrGuest().beaten($scope.layout.name, groupOrLevel.query());
   };
 
-  $scope.isUnlocked = function(user, groupOrLevel) {
-    var paths = groupOrLevel.ls();
-    return user.beaten(paths) || user.unlocked(paths);
+  $scope.isUnlocked = function(groupOrLevel) {
+    var user = getCurrentUserOrGuest();
+    var query = groupOrLevel.query();
+    var ln = $scope.layout.name;
+    return user.beaten(ln, query) || user.unlocked(ln, query);
   };
 }])
 .controller('FreeplayListCtrl', ['$scope', function($scope) {
@@ -193,11 +217,11 @@ angular.module('entrotypeControllers', [])
           // lot of previous failures for a set of keys. That's making the user
           // a slave to the stats, and then they don't really reflect current
           // reality.
-        });
-        $scope.withCurrentUser(function(user) {
-          user.addStats($scope.path, gs.stats);
-          draw_kb_stats(gs.noneDiv, $scope.layout, user.stats(), 'none');
-          draw_kb_stats(gs.shiftDiv, $scope.layout, user.stats(), 'shift');
+          $scope.withCurrentUser(function(user) {
+            user.addStats($scope.path, gs.stats);
+            draw_kb_stats(gs.noneDiv, $scope.layout, user.stats(), 'none');
+            draw_kb_stats(gs.shiftDiv, $scope.layout, user.stats(), 'shift');
+          });
         });
       },
     });
