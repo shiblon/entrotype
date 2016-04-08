@@ -90,10 +90,10 @@ LNode.prototype.nextSibling = function() {
   }
   return pc[thisIndex+1];
 };
-LNode.prototype.children = function() { return this._children || null };
-LNode.prototype.child = function(i) { return (this._children || [])[i] || null };
-LNode.prototype.numChildren = function() { return (this._children || []).length };
-LNode.prototype.isGroup = function() { return this.children() != null };
+LNode.prototype.children = function() { return this.isGroup() ? this._children : null };
+LNode.prototype.child = function(i) { return this.isGroup() ? this._children[i] : null };
+LNode.prototype.numChildren = function() { return this.isGroup() ? this._children.length : 0 };
+LNode.prototype.isGroup = function() { return this._children != null };
 LNode.prototype.name = function() { return this._name };
 LNode.prototype.title = function() { return this._title };
 LNode.prototype.description = function() { return this._description };
@@ -253,6 +253,25 @@ KBLevels.prototype.search = function(path) {
     path = ps[1];
   }
   return this.root().search(path);
+};
+
+// Pre-order traversal of group tree. Function provided is called as f(node).
+KBLevels.prototype.eachPre = function(f) {
+  function ep(g) {
+    if (!g) {
+      return true;
+    }
+    if (f(g) === false) {
+      return false;
+    }
+    for (var i=0, len=g.numChildren(); i<len; i++) {
+      if (ep(g.child(i)) === false) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return ep(this.root());
 };
 
 KBLevels.prototype.ls = function(path) {

@@ -85,6 +85,36 @@ angular.module('entrotypeControllers', [])
     }
   };
 
+  $scope.beatenLevels = function(user) {
+    var lname = $scope.layout.name();
+    var beaten = [];
+    $scope.levels.eachPre(function(node) {
+      if (user.beaten(lname, node.query())) {
+        beaten.push(node.path());
+      }
+    });
+    return beaten.sort();
+  };
+
+  $scope.setSub = function(l1, l2) {
+    var sub = [];
+    var i1=0, i2=0, len1=l1.length, len2=l2.length;
+    while (i1<len1 && i2<len2) {
+      while (i2<len2 && l2[i2] < l1[i1]) {
+        i2++;
+      }
+      while (i1<len1 && l1[i1] < l2[i2]) {
+        sub.push(l1[i1]);
+        i1++;
+      }
+      while (i1<len1 && i2<len2 && l1[i1] === l2[i2]) {
+        i1++;
+        i2++;
+      }
+    }
+    return sub.concat(l1.slice(i1));
+  };
+
   $scope.isBeaten = function(groupOrLevel) {
     var user = $scope.getCurrentUserOrGuest();
     var lname = $scope.layout.name();
@@ -223,6 +253,7 @@ angular.module('entrotypeControllers', [])
           // a slave to the stats, and then they don't really reflect current
           // reality.
           $scope.withCurrentUser(function(user) {
+            var beatenBefore = $scope.beatenLevels(user);
             var lname = $scope.layout.name();
             user.addStats(lname, gs.stats);
             // TODO: refine criteria for beating a level. Minimum number of attempts?
@@ -230,6 +261,8 @@ angular.module('entrotypeControllers', [])
                 || maxSuccessive >= requiredSuccessive) {
               user.beat(lname, query);
             }
+            var beatenAfter = $scope.beatenLevels(user);
+            console.log(beatenBefore, beatenAfter, $scope.setSub(beatenAfter, beatenBefore));
             draw_kb_stats(gs.noneDiv, $scope.layout, user.stats(lname), 'none');
             draw_kb_stats(gs.shiftDiv, $scope.layout, user.stats(lname), 'shift');
           });
