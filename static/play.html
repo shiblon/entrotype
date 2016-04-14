@@ -36,7 +36,7 @@
     <div id="topbar">
       User: {{ username }}
       <div id="logout" class="topright" ng-click="logout()" ng-if="username !== 'guest'">Log Out</div>
-      <div id="create-account" class="topright" ng-click="" ng-if="username === 'guest'">Create Account</div>
+      <div id="create-account" class="topright" ng-click="moveGuestToNewUser()" ng-if="username === 'guest'">Create Account</div>
     </div>
     <div id="main" ng-view>
     </div>

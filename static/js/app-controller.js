@@ -77,6 +77,11 @@ angular.module('entrotypeControllers', [])
     return user;
   };
 
+  $scope.moveGuestToNewUser = function() {
+    // TODO: implement this.
+    alert("not implemented yet");
+  };
+
   $scope.createAndSwitchToUser = function(name) {
     $scope.createUser(name);
     return $scope.switchToUser(name);
@@ -85,6 +90,7 @@ angular.module('entrotypeControllers', [])
   $scope.userExists = function(name) {
     return !!stGet(userKey(name));
   };
+
   $scope.userList = function() {
     var matches = stListMatchGroups(/^entrotype-user=(.*)$/);
     if (matches.length == 0) {
@@ -97,6 +103,7 @@ angular.module('entrotypeControllers', [])
     }
     return users;
   };
+
   $scope.withCurrentUser = function(f) {
     currUser = null; // ensure that next call to "get" will go out to storage.
     var user = $scope.getCurrentUserOrGuest();
