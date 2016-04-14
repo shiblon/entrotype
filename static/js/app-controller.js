@@ -20,12 +20,31 @@ angular.module('entrotypeControllers', [])
     return curr.parent();
   }
 
+  var KEY_PREFIX = "entrotype-user=";
+  var KEY_REGEX = /^entrotype-user=(.*)$/;
+
   function userKey(name) {
-    return "entrotype-user=" + name;
+    return KEY_PREFIX + (name || "");
   }
 
-  // TODO: make this selectable
-  $scope.username = 'guest';
+  function normalizeUsername(name) {
+    name = (name || "").trim();
+    if (name.length < 3) {
+      throw new Error("username too short, must have at least 3 characters");
+    }
+    if (name.length > 15) {
+      throw new Error("username too long, must have no more than 15 characters");
+    }
+    return name;
+  }
+
+  $scope.listUsernames = function() {
+    var keys = stListMatching(KEY_REGEX);
+    $.each(keys, function(i, v) {
+      keys[i] = v.replace(KEY_REGEX, "$1");
+    });
+    return keys;
+  }
 
   var currUser = null;
   $scope.getCurrentUserOrGuest = function() {
@@ -43,8 +62,28 @@ angular.module('entrotypeControllers', [])
     return user;
   };
 
+  $scope.switchToUser = function(name) {
+    $scope.username = name;
+    return $scope.getCurrentUserOrGuest(name);
+  };
+
+  $scope.createUser = function(name) {
+    name = normalizeUsername(name);
+    if ($scope.userExists(name)) {
+      throw new Error("user name already exists: " + name);
+    }
+    var user = new User(name);
+    stSet(userKey(user.name()), user.toObj());
+    return user;
+  };
+
+  $scope.createAndSwitchToUser = function(name) {
+    $scope.createUser(name);
+    return $scope.switchToUser(name);
+  };
+
   $scope.userExists = function(name) {
-    return stListMatching(new RexExp("^" + userKey(name) + "$")).length > 0;
+    return !!stGet(userKey(name));
   };
   $scope.userList = function() {
     var matches = stListMatchGroups(/^entrotype-user=(.*)$/);
@@ -144,8 +183,66 @@ angular.module('entrotypeControllers', [])
       return true;
     }
   };
+
+  $scope.logout = function() {
+    $scope.switchToUser('guest');
+    $scope.go('/users');
+  };
+
+  // TODO: make this selectable
+  $scope.username = 'guest';
+  if (!$scope.userExists($scope.username)) {
+    $scope.createAndSwitchToUser($scope.username);
+  }
 }])
-.controller('FreeplayListCtrl', ['$scope', function($scope) {
+.controller('NewUserCtrl', ['$scope', '$routeParams', function($scope, $routeParams) {
+  function ok() {
+    var loc = $routeParams.o || "/levels",
+        locSearch = $routeParams.os || {};
+    $scope.go(loc, locSearch);
+  }
+
+  function cancel() {
+    var loc = $routeParams.c || "/levels",
+        locSearch = $routeParams.cs || {};
+    $scope.go(loc, locSearch);
+  }
+
+  // No longer interested - go back without any changes.
+  $scope.cancel = function() {
+    cancel();
+  };
+
+  $scope.tryCreateUser = function() {
+    $scope.error = "";
+    var user;
+    try {
+      user = $scope.createAndSwitchToUser($scope.proposedUsername);
+    } catch (e) {
+      $scope.error = e.message;
+      return;
+    }
+    ok();
+  };
+
+}])
+.controller('UsersCtrl', ['$scope', function($scope) {
+  function refreshUsernames() {
+    $scope.usernames = $scope.listUsernames();
+  }
+
+  refreshUsernames();
+
+  $scope.requestNewUser = function() {
+    $scope.go('/newuser', { o: '/levels', c: '/users' });
+  };
+
+  $scope.selectUser = function(name) {
+    $scope.switchToUser(name);
+    $scope.go('/levels');
+  };
+}])
+.controller('LevelsCtrl', ['$scope', function($scope) {
   $scope.levelSelect = function(groupOrLevel) {
     if (!groupOrLevel.isGroup() && !$scope.isUnlocked(groupOrLevel)) {
       return;
@@ -157,6 +254,10 @@ angular.module('entrotypeControllers', [])
   };
 }])
 .controller('GameCtrl', ['$scope', '$route', '$routeParams', function($scope, $route, $routeParams) {
+  // TODO: reset all state on this when we enter this route!
+  // There are weird cases where the game appears to have *continued*, even
+  // after a user switch, etc. Ensure that that can't happen.
+  //
   function tfmt(num) {
     var s = "" + num;
     if (s.length < 2) {
@@ -181,6 +282,7 @@ angular.module('entrotypeControllers', [])
     throw "no level specified in URL search params";
   }
 
+  console.log('level path', $scope.path);
   var level = $scope.levels.search($scope.path);
   var query = KeyboardLayout.simplify(level.query());
 
@@ -253,7 +355,6 @@ angular.module('entrotypeControllers', [])
           // a slave to the stats, and then they don't really reflect current
           // reality.
           $scope.withCurrentUser(function(user) {
-            var beatenBefore = $scope.beatenLevels(user);
             var lname = $scope.layout.name();
             user.addStats(lname, gs.stats);
             // TODO: refine criteria for beating a level. Minimum number of attempts?
@@ -261,8 +362,6 @@ angular.module('entrotypeControllers', [])
                 || maxSuccessive >= requiredSuccessive) {
               user.beat(lname, query);
             }
-            var beatenAfter = $scope.beatenLevels(user);
-            console.log(beatenBefore, beatenAfter, $scope.setSub(beatenAfter, beatenBefore));
             draw_kb_stats(gs.noneDiv, $scope.layout, user.stats(lname), 'none');
             draw_kb_stats(gs.shiftDiv, $scope.layout, user.stats(lname), 'shift');
           });

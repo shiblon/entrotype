@@ -6,10 +6,10 @@ function _isa(child, parent) {
   child.prototype.constructor = child;
 }
 
-CANONICAL_PATH_SEP = '.';
-END_PATH_SEP = /[.]+$/;
-BEGIN_PATH_SEP = /^[.]+/;
-ALLOWED_PATH_SEPS = /[/.:|]/g;
+CANONICAL_PATH_SEP = '/';
+END_PATH_SEP = /[/]+$/;
+BEGIN_PATH_SEP = /^[/]+/;
+ALLOWED_PATH_SEPS = /[/]/g;
 
 function normalizePath(path) {
   if (path == null) {
@@ -20,7 +20,7 @@ function normalizePath(path) {
 
 function splitPath(path) {
   path = normalizePath(path);
-  nextSlash = path.indexOf('.');
+  nextSlash = path.indexOf(CANONICAL_PATH_SEP);
   if (nextSlash < 0) {
     return [path, ""];
   }
@@ -139,6 +139,7 @@ LNode.prototype.path = function() {
 };
 LNode.prototype.search = function(relPath) {
   var ps = splitPath(relPath);
+  console.log('search ps', ps);
   var lookFor = ps[0],
       subPath = ps[1];
 

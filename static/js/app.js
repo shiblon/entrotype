@@ -6,7 +6,7 @@ angular.module('entrotypeApp', [
     $routeProvider
       .when('/levels', {
         templateUrl: 'partials/all-levels.html',
-        controller: 'FreeplayListCtrl',
+        controller: 'LevelsCtrl',
       })
       .when('/title', {
         templateUrl: 'partials/title.html',
@@ -17,6 +17,14 @@ angular.module('entrotypeApp', [
       .when('/game', {
         templateUrl: 'partials/game.html',
         controller: 'GameCtrl',
+      })
+      .when('/users', {
+        templateUrl: 'partials/users.html',
+        controller: 'UsersCtrl',
+      })
+      .when('/newuser', {
+        templateUrl: 'partials/new-user.html',
+        controller: 'NewUserCtrl',
       })
       .otherwise({
         redirectTo: '/title',

@@ -1,13 +1,31 @@
 (function(undefined) {
 
-function parsePath(ps) {
-  if (!ps) {
-    throw "invalid empty path " + JSON.stringify(ps);
+// Paths must be arrays of nonzero length with nonzero elements.
+function consumePathArgs(args, needValue) {
+  args = Array.prototype.slice.call(args, 0);
+  var value = undefined;
+  if (needValue) {
+    if (args.length < 2) {
+      throw new Error("too few path arguments; expected keys and value, got " +
+                      JSON.stringify(args));
+    }
+    value = args[args.length-1];
+    args = args.slice(0, args.length-1);
   }
-  if (!ps.match(/^[\w=_-]+(\.[\w=_-]+)*$/)) {
-    throw "invalid path str " + JSON.stringify(ps);
+  if (args.length === 0) {
+    throw new Error("empty path not allowed");
   }
-  return ps.split(/[.]/g);
+
+  for (var i=0, len=args.length; i<len; i++) {
+    if (typeof args[i] !== "string" || args[i].length === 0) {
+      throw new Error("empty element (" + i + ") in path: { " + ps[i] + " }");
+    }
+  }
+
+  return {
+    keys: args,
+    value: value,
+  };
 }
 
 stListMatching = function(re) {
@@ -39,13 +57,14 @@ stListMatchGroups = function(re) {
   return groups;
 };
 
-stSet = function(path, val) {
+stSet = function(_path_keys_, _val_) {
   if (typeof Storage === "undefined") {
     throw "No local storage defined, can't set values.";
   }
-  var keys = parsePath(path),
-      mainKey = keys[0],
-      subKeys = keys.slice(1);
+  var args = consumePathArgs(arguments, true),
+      mainKey = args.keys[0],
+      subKeys = args.keys.slice(1),
+      val = args.value;
 
   if (subKeys.length == 0) {
     localStorage[mainKey] = JSON.stringify(val);
@@ -70,15 +89,15 @@ stSet = function(path, val) {
   localStorage.setItem(mainKey, JSON.stringify(obj));
 };
 
-stGet = function(path) {
+stGet = function(_path_keys_) {
   if (typeof Storage === "undefined") {
     throw "No local storage defined, can't get values.";
   }
-  var keys = parsePath(path),
-      mainKey = keys[0],
-      subKeys = keys.slice(1);
+  var args = consumePathArgs(arguments),
+      mainKey = args.keys[0],
+      subKeys = args.keys.slice(1);
 
-  console.log('stget keys', keys, mainKey, subKeys);
+  console.log('stget keys', args.keys, mainKey, subKeys);
 
   var sval = localStorage.getItem(mainKey);
   if (sval == null) {
@@ -106,9 +125,9 @@ stRemove = function(path) {
   if (typeof Storage === "undefined") {
     throw "No local storage defined, can't get values.";
   }
-  var keys = parsePath(path),
-      mainKey = keys[0],
-      subKeys = keys.slice(1);
+  var args = consumePathArgs(arguments),
+      mainKey = args.keys[0],
+      subKeys = args.keys.slice(1);
 
   if (subKeys.length == 0) {
     localStorage.removeItem(mainKey);
