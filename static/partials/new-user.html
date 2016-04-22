@@ -1,0 +1,23 @@
+<style>
+  #new-user {
+    position: absolute;
+    top: 25%;
+    bottom: 25%;
+    left: 25%;
+    right: 25%;
+    border: 1px solid gray;
+  }
+</style>
+<div id="new-user-container" class="content-container">
+  <div id="new-user">
+    <form id="new-user-name-form" ng-submit="tryCreateUser()">
+      <p ng-if="error">{{ error }}</p>
+      <label for="username-field">User Name:</label>
+      <input ng-model="proposedUsername" autofocus id="username-field" type="text" maxlength="15" minlength="3" autocomplete="username" placeholder="username"></input>
+      <div>
+        <input type="button" ng-click="cancel()" value="Cancel"/>
+        <input type="submit" value="OK"/>
+      </div>
+    </form>
+  </div>
+</div>

@@ -11,6 +11,9 @@ angular.module('entrotypeControllers', [])
       $location.search(k, v);
     });
   };
+  $scope.back = function() {
+    window.history.back();
+  };
 
   function findBeginningGroup(levels) {
     var curr = levels.root();
@@ -38,6 +41,11 @@ angular.module('entrotypeControllers', [])
     return name;
   }
 
+  function writeUser(user) {
+    stSet(userKey(user.name()), user.toObj());
+    return user;
+  }
+
   $scope.listUsernames = function() {
     var keys = stListMatching(KEY_REGEX);
     $.each(keys, function(i, v) {
@@ -46,20 +54,23 @@ angular.module('entrotypeControllers', [])
     return keys;
   }
 
+  $scope.getUser = function(name) {
+    var uobj = stGet(userKey(name));
+    if (uobj == null) {
+      return null;
+    }
+    return User.fromObj(uobj);
+  };
+
   var currUser = null;
+
   $scope.getCurrentUserOrGuest = function() {
     if (currUser != null && currUser.name() === $scope.username) {
       return currUser;
     }
-    var userObj = stGet(userKey($scope.username));
-    var user;
-    if (userObj == null) {
-      user = new User($scope.username);
-    } else {
-      user = User.fromObj(userObj);
-    }
-    currUser = user; // memoize
-    return user;
+    // Get or create a guest and memoize it as the current user.
+    currUser = $scope.getUser($scope.username) || writeUser(new User('guest'));
+    return currUser;
   };
 
   $scope.switchToUser = function(name) {
@@ -72,19 +83,27 @@ angular.module('entrotypeControllers', [])
     if ($scope.userExists(name)) {
       throw new Error("user name already exists: " + name);
     }
-    var user = new User(name);
-    stSet(userKey(user.name()), user.toObj());
-    return user;
+    return writeUser(new User(name));
+  };
+
+  // Creates a new user and, if successful, switches to it. If moveGuest is
+  // specified, also copies the guest account into the new user and deletes the
+  // guest account.
+  $scope.createAndSwitchToUser = function(name, moveGuest) {
+    if (moveGuest) {
+      $scope.switchToUser('guest');
+      $scope.withCurrentUser(function(user) {
+        console.log('giving new name to', name, user);
+        user.name(name);
+      });
+    } else {
+      $scope.createUser(name);
+    }
+    return $scope.switchToUser(name);
   };
 
   $scope.moveGuestToNewUser = function() {
-    // TODO: implement this.
-    alert("not implemented yet");
-  };
-
-  $scope.createAndSwitchToUser = function(name) {
-    $scope.createUser(name);
-    return $scope.switchToUser(name);
+    $scope.go('/newuser', { mg: 1 });
   };
 
   $scope.userExists = function(name) {
@@ -109,25 +128,36 @@ angular.module('entrotypeControllers', [])
     var user = $scope.getCurrentUserOrGuest();
     try {
       var oldName = user.name();
+      console.log('old name', oldName);
       if (f(user) === false) {
         return false;
       }
       // If renamed, ensure that the new name doesn't have collisions before blindly updating.
       if (oldName !== user.name()) {
+        console.log('changed name to', user.name());
         if ($scope.userExists(user.name())) {
           console.error("failed user rename to exising user:", user.name());
-          return;
+          return false;
         }
       }
-      stSet(userKey(user.name()), user.toObj());
+      console.log('saving user', user.toObj());
+      writeUser(user);
       // If the user got renamed, then we need to delete the old one and
       // remember the new one as the current username.
       if (oldName !== user.name()) {
+        console.log('old name != new name');
         stRemove(userKey(oldName));
+        // If we just deleted the guest user, create a new empty one.
+        if (oldName === 'guest') {
+          writeUser(new User('guest'));
+        }
+        // Change the current user name.
         $scope.username = user.name();
       }
+      return true;
     } catch(err) {
       console.error("error executing " + f + " or updating user:", err)
+      return false;
     }
   };
 
@@ -196,23 +226,34 @@ angular.module('entrotypeControllers', [])
     $scope.go('/users');
   };
 
-  // TODO: make this selectable
+  // Initialization - ensure there is a guest account, and start out using it.
   $scope.username = 'guest';
-  if (!$scope.userExists($scope.username)) {
-    $scope.createAndSwitchToUser($scope.username);
+  if (!$scope.userExists('guest')) {
+    currUser = writeUser(new User('guest'));
   }
 }])
 .controller('NewUserCtrl', ['$scope', '$routeParams', function($scope, $routeParams) {
+  var moveGuest = $routeParams.mg == 1;
+
   function ok() {
-    var loc = $routeParams.o || "/levels",
+    console.log('ok', !!moveGuest, $routeParams);
+    var loc = $routeParams.o,
         locSearch = $routeParams.os || {};
-    $scope.go(loc, locSearch);
+    if (!loc) {
+      $scope.back();
+    } else {
+      $scope.go(loc, locSearch);
+    }
   }
 
   function cancel() {
-    var loc = $routeParams.c || "/levels",
+    var loc = $routeParams.c,
         locSearch = $routeParams.cs || {};
-    $scope.go(loc, locSearch);
+    if (!loc) {
+      $scope.back();
+    } else {
+      $scope.go(loc, locSearch);
+    }
   }
 
   // No longer interested - go back without any changes.
@@ -221,15 +262,14 @@ angular.module('entrotypeControllers', [])
   };
 
   $scope.tryCreateUser = function() {
-    $scope.error = "";
-    var user;
+    $scope.error = '';
     try {
-      user = $scope.createAndSwitchToUser($scope.proposedUsername);
+      $scope.createAndSwitchToUser($scope.proposedUsername, moveGuest);
+      ok();
     } catch (e) {
       $scope.error = e.message;
       return;
     }
-    ok();
   };
 
 }])
@@ -289,7 +329,6 @@ angular.module('entrotypeControllers', [])
     throw "no level specified in URL search params";
   }
 
-  console.log('level path', $scope.path);
   var level = $scope.levels.search($scope.path);
   var query = KeyboardLayout.simplify(level.query());
 

@@ -139,7 +139,6 @@ LNode.prototype.path = function() {
 };
 LNode.prototype.search = function(relPath) {
   var ps = splitPath(relPath);
-  console.log('search ps', ps);
   var lookFor = ps[0],
       subPath = ps[1];
 

@@ -97,15 +97,12 @@ stGet = function(_path_keys_) {
       mainKey = args.keys[0],
       subKeys = args.keys.slice(1);
 
-  console.log('stget keys', args.keys, mainKey, subKeys);
-
   var sval = localStorage.getItem(mainKey);
   if (sval == null) {
     return sval;
   }
 
   var obj = JSON.parse(sval);
-  console.log('stget obj', obj);
 
   if (subKeys.length == 0) {
     return obj;

@@ -1,0 +1,6 @@
+<div id="users-container" class="content-container">
+  <ul class="none">
+    <li ng-repeat="name in usernames" ng-click="selectUser(name)">{{ name }}</li>
+    <li ng-click="requestNewUser()">Create Account</li>
+  </ul>
+</div>
