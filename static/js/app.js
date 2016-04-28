@@ -1,5 +1,6 @@
 angular.module('entrotypeApp', [
-  'ngRoute',
+  'ngRoute', // TODO: remove this (and the angular-route.min.js dependency)?
+  'ui.router',
   'entrotypeControllers',
 ])
 .config(['$routeProvider', function($routeProvider) {

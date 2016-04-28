@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="css/play.css" />
     <script src="js/angular.min.js"></script>
     <script src="js/angular-route.min.js"></script>
+    <script src="js/angular-ui-router.min.js"></script>
     <script src="js/jquery.min.js"></script>
     <script src="js/jcanvas.min.js"></script>
     <script src="js/storage.js"></script>
@@ -35,8 +36,7 @@
   <body ng-controller="ParentCtrl">
     <div id="topbar">
       User: {{ username }}
-      <div id="logout" class="topright" ng-click="logout()" ng-if="username !== 'guest'">Log Out</div>
-      <div id="create-account" class="topright" ng-click="moveGuestToNewUser()" ng-if="username === 'guest'">Create Account</div>
+      <div id="logout" class="topright" ng-click="logout()">Log Out</div>
     </div>
     <div id="main" ng-view>
     </div>
