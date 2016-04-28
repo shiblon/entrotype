@@ -40,7 +40,7 @@
   <div id="game-container" class="game-field"></div>
   <div class="game-footer">
     <div ng-class="{'no-display': !finished}" ng-click="again()" class="nav-el">Again</div>
-    <div ng-class="{'no-display': !(finished || paused)}" ng-click="go('/levels')" class="nav-el">Levels</div>
-    <div ng-class="{'no-display': !(finished || paused)}" ng-click="go('/')" class="nav-el">Home</div>
+    <div ng-class="{'no-display': !(finished || paused)}" class="nav-el"><a ui-sref="levels">Levels</a></div>
+    <div ng-class="{'no-display': !(finished || paused)}" class="nav-el"><a ui-sref="home">Home</a></div>
   </div>
 </div>

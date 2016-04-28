@@ -1,17 +1,9 @@
 angular.module('entrotypeControllers', [])
-.controller('ParentCtrl', ['$scope', '$location', function($scope, $location) {
+.controller('ParentCtrl', ['$scope', '$state', '$location', function($scope, $state, $location) {
   var currUser = null;
   $scope.username = null;
   $scope.levels = KB_LEVELS;
   $scope.layout = new KeyboardLayout('ansi-qwerty');
-
-  $scope.go = function(path, search) {
-    search = search || {};
-    $location.path(path).search({}); // clear search terms, then add the new ones
-    $.each(search, function(k, v) {
-      $location.search(k, v);
-    });
-  };
 
   $scope.back = function() {
     window.history.back();
@@ -83,7 +75,7 @@ angular.module('entrotypeControllers', [])
   $scope.logout = function() {
     currUser = null;
     $scope.username = null;
-    $scope.go('/users');
+    $state.go('users');
   };
 
   $scope.createUser = function(name) {
@@ -206,24 +198,22 @@ angular.module('entrotypeControllers', [])
     }
   };
 }])
-.controller('NewUserCtrl', ['$scope', '$routeParams', function($scope, $routeParams) {
+.controller('NewUserCtrl', ['$scope', '$state', '$stateParams', function($scope, $state, $stateParams) {
   function ok() {
-    var loc = $routeParams.o,
-        locSearch = $routeParams.os || {};
+    var loc = $stateParams.o;
     if (!loc) {
       $scope.back();
     } else {
-      $scope.go(loc, locSearch);
+      $state.go(loc);
     }
   }
 
   function cancel() {
-    var loc = $routeParams.c,
-        locSearch = $routeParams.cs || {};
+    var loc = $stateParams.c;
     if (!loc) {
       $scope.back();
     } else {
-      $scope.go(loc, locSearch);
+      $state.go(loc);
     }
   }
 
@@ -244,7 +234,7 @@ angular.module('entrotypeControllers', [])
   };
 
 }])
-.controller('UsersCtrl', ['$scope', function($scope) {
+.controller('UsersCtrl', ['$scope', '$state', function($scope, $state) {
   function refreshUsernames() {
     $scope.usernames = $scope.listUsernames();
   }
@@ -252,26 +242,27 @@ angular.module('entrotypeControllers', [])
   refreshUsernames();
 
   $scope.requestNewUser = function() {
-    $scope.go('/newuser', { o: '/levels', c: '/users' });
+    $state.go('newuser', { o: 'levels', c: 'users' });
   };
 
   $scope.selectUser = function(name) {
     $scope.switchToUser(name);
-    $scope.go('/levels');
+    $state.go('levels');
   };
 }])
-.controller('LevelsCtrl', ['$scope', function($scope) {
+.controller('LevelsCtrl', ['$scope', '$state', function($scope, $state) {
   $scope.levelSelect = function(groupOrLevel) {
     if (!groupOrLevel.isGroup() && !$scope.isUnlocked(groupOrLevel)) {
       return;
     }
     var query = KeyboardLayout.simplify(groupOrLevel.query());
-    $scope.go('/game', {
-      'l': groupOrLevel.path()
+    $state.go('game', {
+      'q': query,
+      'level': groupOrLevel.path(),
     });
   };
 }])
-.controller('GameCtrl', ['$scope', '$route', '$routeParams', function($scope, $route, $routeParams) {
+.controller('GameCtrl', ['$scope', '$state', '$stateParams', function($scope, $state, $stateParams) {
   // TODO: reset all state on this when we enter this route!
   // There are weird cases where the game appears to have *continued*, even
   // after a user switch, etc. Ensure that that can't happen.
@@ -293,15 +284,15 @@ angular.module('entrotypeControllers', [])
     return ":" + tfmt(seconds);
   }
 
-  $scope.again = function() { $route.reload() };
+  $scope.again = function() { $state.reload() };
 
-  $scope.path = KBLevels.normPath($routeParams.l);
+  $scope.path = KBLevels.normPath($stateParams.level);
   if ($scope.path == null) {
     throw "no level specified in URL search params";
   }
 
   var level = $scope.levels.search($scope.path);
-  var query = KeyboardLayout.simplify(level.query());
+  var query = $stateParams.q;
 
   (function() {
     var keySet = $scope.layout.query(query);
@@ -321,7 +312,7 @@ angular.module('entrotypeControllers', [])
     var maxSuccessive = 0;
     var currSuccessive = 0;
 
-    var maxAttempts = $routeParams.n || 3*keySet.length;
+    var maxAttempts = $stateParams.n || 3*keySet.length;
     var requiredSuccessive = 1.5*keySet.length;
     var requiredGood = 0.8*keySet.length;
 
