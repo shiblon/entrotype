@@ -39,7 +39,7 @@
   </div>
   <div id="game-container" class="game-field"></div>
   <div class="game-footer">
-    <div ng-class="{'no-display': !finished}" ng-click="$state.reload()" class="nav-el">Again</div>
+    <div ng-class="{'no-display': !finished}" ng-click="$state.reload($state.$current.name)" class="nav-el">Again</div>
     <div ng-class="{'no-display': !(finished || paused)}" ng-click="$state.go('learn.levels')" class="nav-el">Levels</div>
     <div ng-class="{'no-display': !(finished || paused)}" ng-click="$state.go('home')" class="nav-el">Home</div>
   </div>
