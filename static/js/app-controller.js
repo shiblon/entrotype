@@ -9,6 +9,14 @@ angular.module('entrotypeControllers', [])
     window.history.back();
   };
 
+  $scope.requireUser = function() {
+    if (!$scope.username) {
+      $state.go('users', {'returnToState': $state.current.name});
+      return false;
+    }
+    return true;
+  };
+
   function findBeginningGroup(levels) {
     var curr = levels.root();
     while (curr != null && curr.isGroup()) {
@@ -200,7 +208,7 @@ angular.module('entrotypeControllers', [])
 }])
 .controller('NewUserCtrl', ['$scope', '$state', '$stateParams', function($scope, $state, $stateParams) {
   function ok() {
-    var loc = $stateParams.o;
+    var loc = $stateParams.okState;
     if (!loc) {
       $scope.back();
     } else {
@@ -209,7 +217,7 @@ angular.module('entrotypeControllers', [])
   }
 
   function cancel() {
-    var loc = $stateParams.c;
+    var loc = $stateParams.cancelState || $state.$current.parent.name;
     if (!loc) {
       $scope.back();
     } else {
@@ -234,7 +242,7 @@ angular.module('entrotypeControllers', [])
   };
 
 }])
-.controller('UsersCtrl', ['$scope', '$state', function($scope, $state) {
+.controller('UsersCtrl', ['$scope', '$state', '$stateParams', function($scope, $state, $stateParams) {
   function refreshUsernames() {
     $scope.usernames = $scope.listUsernames();
   }
@@ -242,27 +250,37 @@ angular.module('entrotypeControllers', [])
   refreshUsernames();
 
   $scope.requestNewUser = function() {
-    $state.go('newuser', { o: 'levels', c: 'users' });
+    $state.go('users.newuser', {
+      'okState': $stateParams.returnToState,
+      'cancelState': $state.current.name
+    });
   };
 
   $scope.selectUser = function(name) {
     $scope.switchToUser(name);
-    $state.go('levels');
+    var next = $stateParams.returnToState;
+    if (!next) {
+      console.error("no return state specified in users: going to learn.levels");
+      next = 'learn.levels';
+    }
+    $state.go(next);
   };
 }])
 .controller('LevelsCtrl', ['$scope', '$state', function($scope, $state) {
+  if (!$scope.requireUser()) return;
   $scope.levelSelect = function(groupOrLevel) {
     if (!groupOrLevel.isGroup() && !$scope.isUnlocked(groupOrLevel)) {
       return;
     }
     var query = KeyboardLayout.simplify(groupOrLevel.query());
-    $state.go('game', {
-      'q': query,
+    $state.go('learn.game', {
       'level': groupOrLevel.path(),
+      'q': query,
     });
   };
 }])
 .controller('GameCtrl', ['$scope', '$state', '$stateParams', function($scope, $state, $stateParams) {
+  if (!$scope.requireUser()) return;
   // TODO: reset all state on this when we enter this route!
   // There are weird cases where the game appears to have *continued*, even
   // after a user switch, etc. Ensure that that can't happen.
@@ -284,18 +302,16 @@ angular.module('entrotypeControllers', [])
     return ":" + tfmt(seconds);
   }
 
-  $scope.again = function() { $state.reload() };
-
   $scope.path = KBLevels.normPath($stateParams.level);
   if ($scope.path == null) {
     throw "no level specified in URL search params";
   }
 
-  var level = $scope.levels.search($scope.path);
-  var query = $stateParams.q;
+  $scope.level = $scope.levels.search($scope.path);
+  $scope.query = KeyboardLayout.simplify($scope.level.query());
 
   (function() {
-    var keySet = $scope.layout.query(query);
+    var keySet = $scope.layout.query($scope.query);
 
     function makeSkyFall(parent, config) {
       return new SkyFall(parent, function() {
@@ -368,7 +384,7 @@ angular.module('entrotypeControllers', [])
             // TODO: refine criteria for beating a level. Minimum number of attempts?
             if (gs.stats.good() >= requiredGood
                 || maxSuccessive >= requiredSuccessive) {
-              user.beat(lname, query);
+              user.beat(lname, $scope.query);
             }
             draw_kb_stats(gs.noneDiv, $scope.layout, user.stats(lname), 'none');
             draw_kb_stats(gs.shiftDiv, $scope.layout, user.stats(lname), 'shift');
@@ -379,4 +395,8 @@ angular.module('entrotypeControllers', [])
 
     gs.start();
   }());
+}])
+.controller('LearnCtrl', ['$scope', '$state', function($scope, $state) {
+  if (!$scope.requireUser()) return;
+  $state.go('learn.levels');
 }]);

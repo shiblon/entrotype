@@ -34,7 +34,7 @@
   </head>
   <body ng-controller="ParentCtrl">
     <div id="topbar">
-      User: {{ username }}
+      <span ng-if="username">User: {{ username }} ::: </span>State: {{ $state.$current.name }}
       <div id="logout" class="topright" ng-click="logout()">Log Out</div>
     </div>
     <div id="main" ui-view>
