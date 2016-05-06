@@ -282,7 +282,10 @@ var simplify = KeyboardLayout.simplify = function(qlist) {
   var canonical = canonicalizedQuery(qlist);
   var specs = [];
   for (var qi in canonical) {
-    specs.push(splitSpecStr(canonical[qi]));
+    // Create a spec, then fill in any missing entries with full values for them.
+    // This way we have long-form fully-qualified specs to merge, which is what
+    // we need for the merge algorithm to work.
+    specs.push(expandedSpec(splitSpecStr(canonical[qi])));
   }
 
   // Takes out only the non-null specs, and canonicalizes their internals so
