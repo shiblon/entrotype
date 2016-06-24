@@ -8,48 +8,40 @@ angular.module('entrotypeApp', [
   $rootScope.$stateParams = $stateParams;
 }])
 .config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
-  $urlRouterProvider.otherwise('/home');
+  $urlRouterProvider.otherwise('home');
 
   $stateProvider
-    .state('users', {
-      url: '/users',
-      params: {
-        'returnToState': '',
-      },
-      templateUrl: 'partials/users.html',
-      controller: 'UsersCtrl',
+    .state('home', {
+      controller: 'HomeCtrl',
+      templateUrl: 'partials/home.html',
+      url: '/home',
     })
-    .state('users.newuser', {
-      views: {
-        '@': { // render in the root unnamed view
-          templateUrl: 'partials/new-user.html',
-          controller: 'NewUserCtrl',
-        },
-      },
-      params: {
-        'okState': '',
-        'cancelState': '',
-      },
-    })
-    .state('learn', {
-      url: '/learn',
-      template: '<ui-view/>',
-      controller: 'LearnCtrl',
-    })
-    .state('learn.levels', {
+    .state('home.levels', {
       templateUrl: 'partials/levels.html',
       controller: 'LevelsCtrl',
+      url: '/levels',
     })
-    .state('learn.game', {
+    .state('home.stats', {
+      templateUrl: 'partials/stats.html',
+      controller: 'StatsCtrl',
+      url: '/stats',
+    })
+    .state('home.game', {
       templateUrl: 'partials/game.html',
       controller: 'GameCtrl',
       params: {
         'level': '',
-        'n': 0,
       },
+      url: '/game', // TODO: remove this when things are working properly.
     })
-    .state('home', {
-      url: '/home',
-      templateUrl: 'partials/title.html',
+    .state('users', {
+      templateUrl: 'partials/users.html',
+      controller: 'UsersCtrl',
+      url: '/users',
+    })
+    .state('users.new', {
+      templateUrl: 'partials/new-user.html',
+      controller: 'NewUserCtrl',
+      url: '/new',
     });
   }]);

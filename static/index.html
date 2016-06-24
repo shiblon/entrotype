@@ -33,12 +33,7 @@
     </style>
   </head>
   <body ng-controller="ParentCtrl">
-    <div id="topbar">
-      <span ng-if="username">User: {{ username }} ::: </span>State: {{ $state.$current.name }}
-      <div id="logout" class="topright" ng-click="logout()">Log Out</div>
-    </div>
-    <div id="main" ui-view>
-    </div>
+    <div id="main" ui-view></div>
   </body>
 </html>
 

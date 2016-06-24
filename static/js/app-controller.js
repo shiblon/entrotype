@@ -1,20 +1,10 @@
 angular.module('entrotypeControllers', [])
 .controller('ParentCtrl', ['$scope', '$state', '$location', function($scope, $state, $location) {
-  var currUser = null;
-  $scope.username = null;
   $scope.levels = KB_LEVELS;
   $scope.layout = new KeyboardLayout('ansi-qwerty');
 
   $scope.back = function() {
     window.history.back();
-  };
-
-  $scope.requireUser = function() {
-    if (!$scope.username) {
-      $state.go('users', {'returnToState': $state.current.name});
-      return false;
-    }
-    return true;
   };
 
   function findBeginningGroup(levels) {
@@ -25,11 +15,15 @@ angular.module('entrotypeControllers', [])
     return curr.parent();
   }
 
-  var KEY_PREFIX = "entrotype-user=";
-  var KEY_REGEX = /^entrotype-user=(.*)$/;
+  var KEY_CURRENT_USER = "entrotype-current-user";
+  var KEY_USER_PREFIX = "entrotype-user=";
+  var KEY_USER_REGEX = /^entrotype-user=(.*)$/;
 
   function userKey(name) {
-    return KEY_PREFIX + (name || "");
+    if (name == null) {
+      return null;
+    }
+    return KEY_USER_PREFIX + (name || "");
   }
 
   function normalizeUsername(name) {
@@ -43,46 +37,48 @@ angular.module('entrotypeControllers', [])
     return name;
   }
 
+  function removeUser(name) {
+    if (name == null) {
+      return null;
+    }
+    stRemove(userKey(name));
+  }
+
   function writeUser(user) {
     stSet(userKey(user.name()), user.toObj());
     return user;
   }
 
-  $scope.listUsernames = function() {
-    var keys = stListMatching(KEY_REGEX);
-    $.each(keys, function(i, v) {
-      keys[i] = v.replace(KEY_REGEX, "$1");
-    });
-    return keys;
-  }
-
-  $scope.getUser = function(name) {
+  function readUser(name) {
+    if (name == null) {
+      return null;
+    }
     var uobj = stGet(userKey(name));
     if (uobj == null) {
       return null;
     }
     return User.fromObj(uobj);
-  };
+  }
 
-  $scope.getCurrentUser = function() {
-    if (currUser != null && currUser.name() === $scope.username) {
-      return currUser;
+  $scope.listUsernames = function() {
+    var keys = stListMatching(KEY_USER_REGEX);
+    $.each(keys, function(i, v) {
+      keys[i] = v.replace(KEY_USER_REGEX, "$1");
+    });
+    return keys;
+  }
+
+  // Sets or gets the current user.
+  $scope.currentUser = function(_name) {
+    if (typeof _name !== 'undefined') {
+      stSet(KEY_CURRENT_USER, _name);
     }
-    // Get and memoize it as the current user.
-    currUser = $scope.getUser($scope.username);
-    return currUser;
-  };
-
-  // Switches to the user specified by name.
-  $scope.switchToUser = function(name) {
-    $scope.username = name;
-    return $scope.getCurrentUser();
+    return readUser(stGet(KEY_CURRENT_USER));
   };
 
   // Switches away from any user.
   $scope.logout = function() {
-    currUser = null;
-    $scope.username = null;
+    stRemove(KEY_CURRENT_USER);
     $state.go('users');
   };
 
@@ -94,14 +90,22 @@ angular.module('entrotypeControllers', [])
     return writeUser(new User(name));
   };
 
+  $scope.removeUser = function(name) {
+    name = normalizeUsername(name);
+    if (!$scope.userExists(name)) {
+      throw new Error("user name does not exist: " + name);
+    }
+    return removeUser(name);
+  };
+
   // Creates a new user and, if successful, switches to it.
   $scope.createAndSwitchToUser = function(name) {
     $scope.createUser(name);
-    return $scope.switchToUser(name);
+    return $scope.currentUser(name);
   };
 
   $scope.userExists = function(name) {
-    return !!stGet(userKey(name));
+    return !!readUser(name);
   };
 
   $scope.userList = function() {
@@ -115,8 +119,10 @@ angular.module('entrotypeControllers', [])
   };
 
   $scope.withCurrentUser = function(f) {
-    currUser = null; // ensure that next call to "get" will go out to storage.
-    var user = $scope.getCurrentUser();
+    var user = $scope.currentUser();
+    if (user == null) {
+      return false;
+    }
     try {
       var oldName = user.name();
       if (f(user) === false) {
@@ -134,7 +140,7 @@ angular.module('entrotypeControllers', [])
       // remember the new one as the current username.
       if (oldName !== user.name()) {
         stRemove(userKey(oldName));
-        $scope.switchToUser(user.name());
+        $scope.currentUser(user.name());
       }
       return true;
     } catch(err) {
@@ -143,6 +149,7 @@ angular.module('entrotypeControllers', [])
     }
   };
 
+  // TODO: remove or fix this. Currently unused.
   $scope.beatenLevels = function(user) {
     var lname = $scope.layout.name();
     var beaten = [];
@@ -154,6 +161,7 @@ angular.module('entrotypeControllers', [])
     return beaten.sort();
   };
 
+  // TODO: remove unless we're sure we need it.
   $scope.setSub = function(l1, l2) {
     var sub = [];
     var i1=0, i2=0, len1=l1.length, len2=l2.length;
@@ -174,7 +182,7 @@ angular.module('entrotypeControllers', [])
   };
 
   $scope.isBeaten = function(groupOrLevel) {
-    var user = $scope.getCurrentUser();
+    var user = $scope.currentUser();
     if (!user) {
       return false;
     }
@@ -206,85 +214,103 @@ angular.module('entrotypeControllers', [])
     }
   };
 }])
-.controller('NewUserCtrl', ['$scope', '$state', '$stateParams', function($scope, $state, $stateParams) {
-  function ok() {
-    var loc = $stateParams.okState;
-    if (!loc) {
-      $scope.back();
-    } else {
-      $state.go(loc);
-    }
+.controller('UsersCtrl', ['$scope', '$state', function($scope, $state) {
+  if ($scope.currentUser()) {
+    $scope.logout();
   }
 
-  function cancel() {
-    var loc = $stateParams.cancelState || $state.$current.parent.name;
-    if (!loc) {
-      $scope.back();
-    } else {
-      $state.go(loc);
-    }
-  }
-
-  // No longer interested - go back without any changes.
-  $scope.cancel = function() {
-    cancel();
-  };
-
-  $scope.tryCreateUser = function() {
-    $scope.error = '';
-    try {
-      $scope.createAndSwitchToUser($scope.proposedUsername);
-      ok();
-    } catch (e) {
-      $scope.error = e.message;
-      return;
-    }
-  };
-
-}])
-.controller('UsersCtrl', ['$scope', '$state', '$stateParams', function($scope, $state, $stateParams) {
   function refreshUsernames() {
     $scope.usernames = $scope.listUsernames();
   }
 
   refreshUsernames();
 
-  $scope.requestNewUser = function() {
-    $state.go('users.newuser', {
-      'okState': $stateParams.returnToState,
-      'cancelState': $state.current.name
-    });
+  $scope.selectUser = function(name) {
+    $scope.currentUser(name);
+    $state.go('home');
   };
 
-  $scope.selectUser = function(name) {
-    $scope.switchToUser(name);
-    var next = $stateParams.returnToState;
-    if (!next) {
-      console.error("no return state specified in users: going to learn.levels");
-      next = 'learn.levels';
+  $scope.removeUser = function(name) {
+    $scope.$parent.removeUser(name);
+    refreshUsernames();
+  };
+}])
+.controller('NewUserCtrl', ['$scope', '$state', function($scope, $state) {
+  $scope.cancel = function() {
+    $state.go('users');
+  };
+
+  $scope.tryCreateUser = function() {
+    $scope.error = '';
+    try {
+      $scope.createAndSwitchToUser($scope.proposedUsername);
+      $state.go('home');
+    } catch (e) {
+      $scope.error = e.message;
+      return;
     }
-    $state.go(next);
+  };
+}])
+.controller('HomeCtrl', ['$scope', '$state', function($scope, $state) {
+  if (!$scope.currentUser()) {
+    console.log('oops - no logged-in users');
+    $state.go('users');
+    return;
+  }
+  $scope.simpleName = function(name) {
+    return name.replace(/^.*\./, '');
   };
 }])
 .controller('LevelsCtrl', ['$scope', '$state', function($scope, $state) {
-  if (!$scope.requireUser()) return;
   $scope.levelSelect = function(groupOrLevel) {
     if (!groupOrLevel.isGroup() && !$scope.isUnlocked(groupOrLevel)) {
       return;
     }
     var query = KeyboardLayout.simplify(groupOrLevel.query());
-    $state.go('learn.game', {
+    $state.go('home.game', {
       'level': groupOrLevel.path(),
       'q': query,
     });
   };
 }])
+.controller('StatsCtrl', ['$scope', '$state', function($scope, $state) {
+  var user = $scope.currentUser(),
+      layout = $scope.layout,
+      lname = layout.name(),
+      stats = user.stats(lname);
+
+  var threshold = 0.8;
+  var needsWork = [];
+  for (var k in stats.keys) {
+    var ks = stats.keys[k];
+    if (ks.all() == 0) {
+      continue;
+    }
+    var goodness = ks.good() / ks.all();
+    if (goodness < threshold) {
+      needsWork.push({
+        rate: goodness,
+        stat: ks,
+      });
+    }
+  }
+  needsWork.sort(function(a, b) { return a.rate - b.rate });
+  $scope.needsWork = needsWork;
+
+  draw_kb_stats($('#nomod-stats'), layout, stats, 'none');
+  draw_kb_stats($('#shift-stats'), layout, stats, 'shift');
+}])
 .controller('GameCtrl', ['$scope', '$state', '$stateParams', function($scope, $state, $stateParams) {
-  if (!$scope.requireUser()) return;
   // TODO: reset all state on this when we enter this route!
   // There are weird cases where the game appears to have *continued*, even
   // after a user switch, etc. Ensure that that can't happen.
-  //
+
+  $scope.path = KBLevels.normPath($stateParams.level);
+  if (!$scope.path) {
+    $state.go('home.levels');
+    return;
+  }
+
   function tfmt(num) {
     var s = "" + num;
     if (s.length < 2) {
@@ -302,101 +328,88 @@ angular.module('entrotypeControllers', [])
     return ":" + tfmt(seconds);
   }
 
-  $scope.path = KBLevels.normPath($stateParams.level);
-  if ($scope.path == null) {
-    throw "no level specified in URL search params";
-  }
-
   $scope.level = $scope.levels.search($scope.path);
   $scope.query = KeyboardLayout.simplify($scope.level.query());
 
-  (function() {
-    var keySet = $scope.layout.query($scope.query);
+  var keySet = $scope.layout.query($scope.query);
 
-    function makeSkyFall(parent, config) {
-      return new SkyFall(parent, function() {
-        var r = Math.floor(Math.random() * keySet.length);
-        return keySet[r];
-      }, config);
-    }
+  function makeSkyFall(parent, config) {
+    return new SkyFall(parent, function() {
+      var r = Math.floor(Math.random() * keySet.length);
+      return keySet[r];
+    }, config);
+  }
 
-    $scope.running = false;
-    $scope.finished = false;
-    $scope.paused = false;
+  $scope.running = false;
+  $scope.finished = false;
+  $scope.paused = false;
+  $scope.seconds = 0;
 
-    var seconds = 0;
-    var maxSuccessive = 0;
-    var currSuccessive = 0;
+  var maxSuccessive = 0;
+  var currSuccessive = 0;
 
-    var maxAttempts = $stateParams.n || 3*keySet.length;
-    var requiredSuccessive = 1.5*keySet.length;
-    var requiredGood = 0.8*keySet.length;
+  var maxAttempts = 3*keySet.length;
+  var requiredSuccessive = 1.5*keySet.length;
+  var requiredGood = 0.8*keySet.length;
 
-    var gameParent = $('#game-container').empty();
-    var gs = new SingleKeyGameScreen(gameParent, makeSkyFall, {
-      num: maxAttempts,
-      countdownSeconds: 0,
-      onstart: function() {
+  var gameParent = $('#game-container').empty();
+  var gs = new SingleKeyGameScreen(gameParent, makeSkyFall, {
+    num: maxAttempts,
+    countdownSeconds: 0,
+    onstart: function() {
+      $scope.$apply(function() {
+        $scope.clock = clockStr($scope.seconds);
+        $scope.running = true;
+        $scope.paused = false;
+      });
+    },
+    onpause: function() {
+      $scope.$apply(function() {
+        $scope.paused = true;
+      });
+    },
+    ontick: function(t, dt) {
+      var s = Math.floor(t/1000);
+      if (s > $scope.seconds) {
+        $scope.seconds = s;
         $scope.$apply(function() {
-          $scope.clock = clockStr(seconds);
-          $scope.running = true;
-          $scope.paused = false;
+          $scope.clock = clockStr($scope.seconds);
         });
-      },
-      onpause: function() {
-        $scope.$apply(function() {
-          $scope.paused = true;
-        });
-      },
-      ontick: function(t, dt) {
-        var s = Math.floor(t/1000);
-        if (s > seconds) {
-          seconds = s;
-          $scope.$apply(function() {
-            $scope.clock = clockStr(seconds);
-          });
-        }
-      },
-      onhit: function() {
-        currSuccessive++;
-        maxSuccessive = Math.max(maxSuccessive, currSuccessive);
-      },
-      onmiss: function() {
-        currSuccessive = 0;
-      },
-      onlapse: function() {
-        currSuccessive = 0;
-      },
-      onstop: function() {
-        $scope.$apply(function() {
-          $scope.finished = true;
-          $scope.running = false;
+      }
+    },
+    onhit: function() {
+      currSuccessive++;
+      maxSuccessive = Math.max(maxSuccessive, currSuccessive);
+    },
+    onmiss: function() {
+      currSuccessive = 0;
+    },
+    onlapse: function() {
+      currSuccessive = 0;
+    },
+    onstop: function() {
+      $scope.$apply(function() {
+        $scope.finished = true;
+        $scope.running = false;
 
-          // TODO: if the user just unlocked a level, then should we reset the
-          // statistics to reflect the new better state? We probably don't want
-          // to make a user practice stuff forever just because there were a
-          // lot of previous failures for a set of keys. That's making the user
-          // a slave to the stats, and then they don't really reflect current
-          // reality.
-          $scope.withCurrentUser(function(user) {
-            var lname = $scope.layout.name();
-            user.addStats(lname, gs.stats);
-            // TODO: refine criteria for beating a level. Minimum number of attempts?
-            if (gs.stats.good() >= requiredGood
-                || maxSuccessive >= requiredSuccessive) {
-              user.beat(lname, $scope.query);
-            }
-            draw_kb_stats(gs.noneDiv, $scope.layout, user.stats(lname), 'none');
-            draw_kb_stats(gs.shiftDiv, $scope.layout, user.stats(lname), 'shift');
-          });
+        // TODO: if the user just unlocked a level, then should we reset the
+        // statistics to reflect the new better state? We probably don't want
+        // to make a user practice stuff forever just because there were a
+        // lot of previous failures for a set of keys. That's making the user
+        // a slave to the stats, and then they don't really reflect current
+        // reality.
+        $scope.withCurrentUser(function(user) {
+          var lname = $scope.layout.name();
+          user.addStats(lname, gs.stats);
+          // TODO: refine criteria for beating a level. Minimum number of attempts?
+          if (gs.stats.good() >= requiredGood
+              || maxSuccessive >= requiredSuccessive) {
+            user.beat(lname, $scope.query);
+          }
         });
-      },
-    });
+      });
+    },
+  });
 
-    gs.start();
-  }());
-}])
-.controller('LearnCtrl', ['$scope', '$state', function($scope, $state) {
-  if (!$scope.requireUser()) return;
-  $state.go('learn.levels');
+  gs.start();
 }]);

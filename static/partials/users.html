@@ -1,6 +1,16 @@
-<div id="users-container" class="content-container">
-  <ul class="none">
-    <li ng-repeat="name in usernames" ng-click="selectUser(name)">{{ name }}</li>
-    <li ng-click="requestNewUser()">Create Account</li>
-  </ul>
+<style>
+  #create-account {
+    text-align: left;
+  }
+</style>
+<div ui-view id="users-container" class="content-container">
+  <div id="create-account">
+    <a ui-sref="users.new">Create Account</a>
+  </div>
+  <table>
+    <tr ng-repeat="name in usernames">
+      <td ng-click="selectUser(name)">{{ name }}</td>
+      <td ng-click="removeUser(name)">x</td>
+    </tr>
+  </table>
 </div>

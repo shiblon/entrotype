@@ -11,7 +11,7 @@ div.content-container {
   height: 600px;
   position: relative;
   display: inline-block;
-  border: 1px solid gray;
+  border: 1px solid #ccc;
 }
 
 ul.none {
@@ -24,55 +24,10 @@ ul.none li {
   display: inline-block;
   border: 1px solid gray;
   padding: 0.5em;
+  margin: 0 2px;
 }
 
-div .level {
-  display: inline-block;
-  padding: 8px 8px;
-  margin: 8px;
-  background-color: #ccf;
-}
 
-.supergroup {
-  border: 1px dashed gray;
-  margin: 10px 0 10px 0;
-  background-color: #aae;
-  font-family: sans-serif;
-}
-.title-supergroup {
-  font-weight: bold;
-  font-size: 20pt;
-  text-align: left;
-}
-
-.group {
-  border: 1px dashed gray;
-  margin: 10px 0 10px 0;
-  background-color: #bbe;
-  font-family: sans-serif;
-}
-.title-group {
-  text-align: center;
-  font-weight: bold;
-  font-size: 18pt;
-  color: gray;
-  padding: 8px;
-}
-
-.review-group {
-  border: 1px solid gray;
-  padding: 8px 8px;
-  font-size: 20pt;
-  background-color: #aea;
-  margin: 10px;
-}
-
-.review-supergroup {
-  border: 1px solid gray;
-  padding: 8px 8px;
-  font-size: 20pt;
-  background-color: #def;
-}
 
 .no-display {
   display: none !important;

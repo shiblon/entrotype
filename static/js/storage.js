@@ -18,7 +18,7 @@ function consumePathArgs(args, needValue) {
 
   for (var i=0, len=args.length; i<len; i++) {
     if (typeof args[i] !== "string" || args[i].length === 0) {
-      throw new Error("empty element (" + i + ") in path: { " + ps[i] + " }");
+      throw new Error("empty element (" + i + ") in path: { " + args[i] + " }");
     }
   }
 
