@@ -225,6 +225,11 @@ angular.module('entrotypeControllers', [])
 
   refreshUsernames();
 
+  if ($scope.usernames.length == 0) {
+    $state.go('users.new');
+    return;
+  }
+
   $scope.selectUser = function(name) {
     $scope.currentUser(name);
     $state.go('home');
