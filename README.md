@@ -1,5 +1,4 @@
-Entrotype Typing Tutor
-======================
+# Entrotype Typing Tutor
 
 To try this out: http://bouncingchairs.net/entrotype
 
@@ -20,10 +19,3 @@ machine, e.g., Mac or Linux). It requires Python to run the local server. I'm
 open to patches that add simpler support under Windows.
 
 To use, just start it up and navigate to the given URL.
-
-Known Issues
-------------
-
-- The play section is set up so that sometimes you can pass a level without trying all of the keys within it. That needs to be fixed.
-- The interface is ugly. I haven't spent much time on that at all.
-- It would be nice to add some kind of rewarding indication when you pass a level.
