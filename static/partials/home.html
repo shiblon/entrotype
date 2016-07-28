@@ -1,25 +1,38 @@
 <div>
   <style>
-    #topbar {
+    span.userinfo {
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    #userbar {
       width: 100%;
       text-align: right;
-    }
-    ul#path {
-      position: absolute;
-      left: 0px;
-      list-style: none;
-      padding: 0;
+      background-color: #ddd;
       margin: 0;
+      padding: 5px 5px 5px 0px;
+    }
+
+    #pathbar {
+      width: 100%;
+      text-align: left;
+      background-color: #eee;
+      margin: 0;
+      padding: 5px 5px 5px 5px;
+    }
+
+    #pathbar span.clickable {
+      font-weight: bold;
     }
   </style>
-  <div id="topbar">
-    <ul id="path">
-      <li ng-repeat="item in $state.$current.path">
-        <a ng-click="$state.go(item.name)" class="clickable">{{ simpleName(item.name) }}</a>
-        <span ng-if="!$last">::</span>
-      </li>
-    </ul>
-    {{ currentUser().name() }} :: <a ng-click="logout()" class="clickable">logout</a>
+  <div id="userbar">
+    User "{{currentUser().name()}}" <i>(<a ng-click="logout()" class="clickable">logout</a>)</i>
+  </div>
+  <div id="pathbar">
+    <span ng-repeat="item in $state.$current.path" ng-class="{clickable: !$last}" ng-click="$state.go(item.name)">
+      {{ simpleName(item.name) }}
+      <span ng-if="!$last">::</span>
+    </span>
   </div>
   <div ui-view id="title-container" class="content-container">
     <div style="padding: 2em; font-size: 3em;">
