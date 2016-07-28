@@ -1,6 +1,19 @@
 <style>
   #create-account {
-    text-align: left;
+    text-align: right;
+    font-weight: bold;
+    padding: 5px 5px 5px 0px;
+    margin: 0;
+  }
+
+  .deleter {
+    vertical-align: super;
+    font-size: 1em;
+    margin: 4px;
+  }
+
+  .username {
+    font-size: 1.3em;
   }
 </style>
 <div ui-view id="users-container" class="content-container">
@@ -8,9 +21,11 @@
     <a ui-sref="users.new">New User</a>
   </div>
   <table>
-    <tr ng-repeat="name in usernames">
-      <td ng-click="selectUser(name)">{{ name }}</td>
-      <td ng-click="removeUser(name)">x</td>
-    </tr>
+    <ul class="blocky">
+      <li ng-repeat="name in usernames">
+        <span class="clickable username" ng-click="selectUser(name)">{{name}}</span>
+        <span class="clickable deleter" ng-click="removeUser(name)">x</span>
+      </li>
+    </ul>
   </table>
 </div>
