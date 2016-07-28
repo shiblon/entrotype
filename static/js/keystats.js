@@ -159,13 +159,11 @@ KeyStats.prototype.mergeFrom = function(stats) {
 };
 
 function _makeSampler(cumulativeDist) {
-  // Find the normalization constant by reading off the final cumulative weight.
-  var normConst = cumulativeDist[cumulativeDist.length - 1][1];
   return function() {
-    var r = Math.random() * normConst;
+    var r = Math.random();
     for (var i in cumulativeDist) {
-      var val = cumulativeDist[i][0];
-      var weight = cumulativeDist[i][1];
+      var val = cumulativeDist[i][0],
+          weight = cumulativeDist[i][1];
       if (weight >= r) {
         return val;
       }
@@ -234,6 +232,13 @@ KeyStats.prototype.makeSampler = function(universe) {
     prevWeight += w;
     ordered[i] = [k, prevWeight];
   }
+
+  // Normalize the cumulative distribution.
+  var normConst = ordered[ordered.length - 1][1];
+  for (var i in ordered) {
+    ordered[i][1] /= normConst;
+  }
+
   // Provide a sampling function that takes these stats into account.
   // Note that we use a level of indirection to avoid packaging up too much
   // cruft into the closure.

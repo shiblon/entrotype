@@ -16,9 +16,9 @@
   </div>
   <div>
     Top keys needing work:
-    <ul>
+    <ul class="nobullets">
       <li ng-repeat="nw in needsWork">
-        {{ nw.stat.ch }}: {{ nw.rate * 100 }}% correct
+      <b>{{ nw.stat.ch }}</b>: {{ nw.percent }}% correct
       </li>
     </ul>
   </div>

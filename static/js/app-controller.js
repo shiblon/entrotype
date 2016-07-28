@@ -76,6 +76,11 @@ angular.module('entrotypeControllers', [])
     return readUser(stGet(KEY_CURRENT_USER));
   };
 
+  // Get current user stats.
+  $scope.currentStats = function() {
+    return $scope.currentUser().stats($scope.layout.name());
+  };
+
   // Switches away from any user.
   $scope.logout = function() {
     stRemove(KEY_CURRENT_USER);
@@ -295,6 +300,7 @@ angular.module('entrotypeControllers', [])
     if (goodness < threshold) {
       needsWork.push({
         rate: goodness,
+        percent: Math.floor(goodness * 100),
         stat: ks,
       });
     }
@@ -306,10 +312,6 @@ angular.module('entrotypeControllers', [])
   draw_kb_stats($('#shift-stats'), layout, stats, 'shift');
 }])
 .controller('GameCtrl', ['$scope', '$state', '$stateParams', function($scope, $state, $stateParams) {
-  // TODO: reset all state on this when we enter this route!
-  // There are weird cases where the game appears to have *continued*, even
-  // after a user switch, etc. Ensure that that can't happen.
-
   $scope.path = KBLevels.normPath($stateParams.level);
   if (!$scope.path) {
     $state.go('home.levels');
@@ -339,10 +341,10 @@ angular.module('entrotypeControllers', [])
   var keySet = $scope.layout.query($scope.query);
 
   function makeSkyFall(parent, config) {
-    return new SkyFall(parent, function() {
-      var r = Math.floor(Math.random() * keySet.length);
-      return keySet[r];
-    }, config);
+    var stats = $scope.currentStats(),
+        sampler = stats.makeSampler(keySet);
+
+    return new SkyFall(parent, sampler, config);
   }
 
   $scope.running = false;

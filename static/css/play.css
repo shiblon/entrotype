@@ -20,6 +20,10 @@ ul.none {
   margin: 0;
 }
 
+ul.nobullets li {
+  list-style: none;
+}
+
 ul.none li {
   display: inline-block;
   border: 1px solid gray;

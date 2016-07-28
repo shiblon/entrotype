@@ -2,5 +2,5 @@
 
 port=${1:-8080}
 
-cd static
+cd $(dirname $0)/static
 exec python -m SimpleHTTPServer "$port"
