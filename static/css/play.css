@@ -14,6 +14,10 @@ div.content-container {
   border: 1px solid #ccc;
 }
 
+.clickable {
+  cursor: pointer;
+}
+
 ul.none {
   list-style: none;
   padding: 0;
@@ -22,6 +26,7 @@ ul.none {
 
 div.needsWork {
   color: red;
+  font-style: italic;
 }
 
 ul.nobullets li {

@@ -15,11 +15,11 @@
   <div id="topbar">
     <ul id="path">
       <li ng-repeat="item in $state.$current.path">
-        <a ng-click="$state.go(item.name)">{{ simpleName(item.name) }}</a>
+        <a ng-click="$state.go(item.name)" class="clickable">{{ simpleName(item.name) }}</a>
         <span ng-if="!$last">::</span>
       </li>
     </ul>
-    {{ currentUser().name() }} :: <a ng-click="logout()">logout</a>
+    {{ currentUser().name() }} :: <a ng-click="logout()" class="clickable">logout</a>
   </div>
   <div ui-view id="title-container" class="content-container">
     <div style="padding: 2em; font-size: 3em;">
