@@ -17,15 +17,19 @@ function queryContainedIn(subQuery, superQuery) {
   }
   var subset = KeyboardLayout.expand(subQuery),
       superset = KeyboardLayout.expand(superQuery);
-  // These are already in sorted order and uniquified. Compute the linear
-  // intersection.
-  for (var i=0, j=0; i<subset.length && j<superset.length; i++, j++) {
-    for (; j<superset.length && superset[j] !== subset[i]; j++);
+  // These are already in sorted order and uniquified. Ensure that all elements
+  // in subset are in superset.
+  var isuper = 0;
+  for (var isub = 0; isub < subset.length; isub++) {
+    while (isuper < superset.length && superset[isuper] < subset[isub]) {
+      isuper++;
+    }
+    // Element not found in superset.
+    if (isuper === superset.length || superset[isuper] !== subset[isub]) {
+      return false;
+    }
   }
-  // If i makes it to the end before j, that means we ran out of matching
-  // subset elements before running out of elements to check in the superset,
-  // so it's a subset.
-  return i === subset.length;
+  return true;
 };
 
 function UserLayout(id) {

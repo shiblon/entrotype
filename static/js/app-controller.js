@@ -182,7 +182,6 @@ angular.module('entrotypeControllers', [])
     if (!user) {
       return false;
     }
-    var lname = $scope.layout.name();
     return user.beaten($scope.layout.name(), groupOrLevel.query());
   };
 
