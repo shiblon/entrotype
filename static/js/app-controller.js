@@ -154,38 +154,6 @@ angular.module('entrotypeControllers', [])
     }
   };
 
-  // TODO: remove or fix this. Currently unused.
-  $scope.beatenLevels = function(user) {
-    var lname = $scope.layout.name();
-    var beaten = [];
-    $scope.levels.eachPre(function(node) {
-      if (user.beaten(lname, node.query())) {
-        beaten.push(node.path());
-      }
-    });
-    return beaten.sort();
-  };
-
-  // TODO: remove unless we're sure we need it.
-  $scope.setSub = function(l1, l2) {
-    var sub = [];
-    var i1=0, i2=0, len1=l1.length, len2=l2.length;
-    while (i1<len1 && i2<len2) {
-      while (i2<len2 && l2[i2] < l1[i1]) {
-        i2++;
-      }
-      while (i1<len1 && l1[i1] < l2[i2]) {
-        sub.push(l1[i1]);
-        i1++;
-      }
-      while (i1<len1 && i2<len2 && l1[i1] === l2[i2]) {
-        i1++;
-        i2++;
-      }
-    }
-    return sub.concat(l1.slice(i1));
-  };
-
   $scope.isBeaten = function(groupOrLevel) {
     var user = $scope.currentUser();
     if (!user) {
