@@ -69,7 +69,7 @@
 </div>
 <div class="supergroup">
   <div class="title-supergroup">{{ levels.root().title() }}</div>
-  <div ng-click="levelSelect(levels.root())" class="clickable review-supergroup">
+  <div ng-click="levelSelect(levels.root())" class="clickable review-supergroup" ng-class="{beaten: isBeaten(levels.root())}">
     {{ isBeaten(levels.root()) ? 'Review' : 'Test out of' }} {{ levels.root().title() }}
   </div>
 </div>

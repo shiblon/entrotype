@@ -7,13 +7,15 @@
   }
 
   .deleter {
-    vertical-align: super;
-    font-size: 1em;
+    font-size: 0.8em;
     margin: 4px;
   }
 
   .username {
-    font-size: 1.3em;
+    font-size: 2em;
+    border: 1px solid gray;
+    padding: 7px;
+    margin: 1px;
   }
 </style>
 <div ui-view id="users-container" class="content-container">
@@ -21,10 +23,10 @@
     <a ui-sref="users.new">New User</a>
   </div>
   <table>
-    <ul class="blocky">
+    <ul class="none">
       <li ng-repeat="name in usernames">
-        <span class="clickable username" ng-click="selectUser(name)">{{name}}</span>
-        <span class="clickable deleter" ng-click="removeUser(name)">x</span>
+        <div class="clickable username" ng-click="selectUser(name)">{{name}}</div>
+        <div class="clickable deleter" ng-click="removeUser(name)">(delete)</div>
       </li>
     </ul>
   </table>

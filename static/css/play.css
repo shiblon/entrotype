@@ -33,6 +33,13 @@ ul.nobullets li {
   list-style: none;
 }
 
+ul.none li {
+  display: inline-block;
+  border: none;
+  padding: 0.5em;
+  margin: 0 2px;
+}
+
 ul.blocky li {
   display: inline-block;
   border: 1px solid gray;

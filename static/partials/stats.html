@@ -14,7 +14,7 @@
     Shifted
     <div id="shift-stats"></div>
   </div>
-  <div>
+  <div ng-if="needsWork.length > 0">
     Top keys needing work:
     <ul class="nobullets">
       <li ng-repeat="nw in needsWork">
