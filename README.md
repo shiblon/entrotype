@@ -1,100 +1,29 @@
-Design Document
-===============
+Entrotype Typing Tutor
+======================
 
-Login
------
+To try this out: http://bouncingchairs.net/entrotype
 
-TBD. It's important to never require it except for saving state in a syncable way.
+This is a *static site*, so all data, including users, is kept in your browser.
+I felt this was important, since so many typing tutors are out there to show
+you a ton of ads and get information, potentially about your kids. This one
+doesn't do that, and it's open source.
 
-Misc
-----
+It is a simple, single-page web app that aids in teaching touch-typing. Among its basic characteristics are
 
-How do we organize the various screens? Do we want things bookmarkable? Does it matter whether the back button functions properly? Do we want it to? No, probably not. Not for now. Single-page operation is fine.
+- No server login required, no data leaves the client.
+- Can be downloaded and run locally.
+- Everything is plain old Javascript to aid in hacking and teaching the language, should that be of interest (with the exception of the internal navigation, which is AngularJS).
+- Statistics are kept on each key so that it's easy to find and test trouble spots.
 
-Brainstorm
-----------
+You can pull this repository and run it locally using serve.sh (on a Unix-style
+machine, e.g., Mac or Linux). It requires Python to run the local server. I'm
+open to patches that add simpler support under Windows.
 
-- Open app
-- Choose between Free Play, Missions.
+To use, just start it up and navigate to the given URL.
 
-Free Play:
-- Select a query from the list
-- Easy, Medium, Hard.
-- Never affects overall statistics. Just calculates and stores, but doesn't go into trouble spot sampling.
+Known Issues
+------------
 
-Missions:
-- Garden path - get through all of the levels in order.
-- Question: do we allow skipping ahead by testing out? Sure, we can do that and mark all associated levels as complete when the test is passed. Tests should be longer, of course, and pretty hard.
-
-- How does the story progress?
-  - What constitutes success?
-    - Make sure each run samples evenly from the query. Every character tried, what, at least 3 times?
-    - No character missed every time, and no more than 10% misses altogether?
-    - Star system - 10% missed is the minimum, then 5%, then 0 or 1.
-    - If one character is missed more than others, do we emphasize it in subsequent practice? Yes, probably, but that might mess up our statistics. We could develop the sampler by taking away from an easy character and giving it to a hard one. But does that work properly? It could. What if there is more than one hard character? How do we do this in a principled way? Do we just take the worst one each time and remove from the next available easiest one? There has to be a ceiling somewhere.
-    - There also needs to be a "reset and forget what you know about me" button.
-
-Flow and Screens
-----------------
-
-- Main screen: welcome, allow login if wanted, choose type of practice
-  - Free mastery:
-    - Level Picker (open)
-    - Game Picker (mastery)
-  - Guided mastery:
-    - Level Picker (restricted)
-    - Game Picker (mastery)
-  - Speed drills: unlocked after mastery
-    - Type Picker (pseudo text, real text)
-    - Game Picker (speed)
-  - Statistics
-    - weak letters, fingers, hands (for mastery)
-    - if mastery achieved but accuracy is poor on speed drills, suggest mastery exercises.
-
-- Level Picker (restricted or open)
-  - Show available levels, with restricted levels so indicated
-  - Events:
-    - onselect
-    - oncancel (?)
-
-- Game Picker (mastery or speed)
-  - Show available games based on type
-  - Events:
-    - onselect
-    - oncancel (?)
-
-- Type Picker (pseudo or real)
-  - Show types
-  - Events:
-    - onselect
-    - oncancel (?)
-
-- Game Screen
-  - Event capture except when paused
-  - Countdown starts, then triggers game mode until pause or complete.
-
-- Pause Overlay
-  - Quit from here
-  - Resume from here
-  - Show progress thus far
-
-- Completion Screen
-  - Show basic stats
-  - Immediate retry if guided and not successful
-  - Award display if successful (and unlock)
-  - Next logical step if guided and successful
-  - Back to level picker if not guided.
-
-
-Game Concepts
--------------
-
-- Captive game window
-  - Can be started, paused, quit.
-  - While running, captures all input.
-
-- Countdown screen
-  - Can be started, but must run to completion.
-
-- Choice screens
-  - Take up similar horizontal space as the game screen, but possibly a lot more vertical space.
+- The play section is set up so that sometimes you can pass a level without trying all of the keys within it. That needs to be fixed.
+- The interface is ugly. I haven't spent much time on that at all.
+- It would be nice to add some kind of rewarding indication when you pass a level.
