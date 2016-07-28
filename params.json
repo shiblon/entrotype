@@ -1,0 +1,6 @@
+{
+  "name": "Entrotype",
+  "tagline": "A typing tutor for a web generation.",
+  "body": "# Entrotype Typing Tutor\r\n\r\nTo try this out: http://bouncingchairs.net/entrotype\r\n\r\nThis is a *static site*, so all data, including users, is kept in your browser.\r\nI felt this was important, since so many typing tutors are out there to show\r\nyou a ton of ads and get information, potentially about your kids. This one\r\ndoesn't do that, and it's open source.\r\n\r\nIt is a simple, single-page web app that aids in teaching touch-typing. Among its basic characteristics are\r\n\r\n- No server login required, no data leaves the client.\r\n- Can be downloaded and run locally.\r\n- Everything is plain old Javascript to aid in hacking and teaching the language, should that be of interest (with the exception of the internal navigation, which is AngularJS).\r\n- Statistics are kept on each key so that it's easy to find and test trouble spots.\r\n\r\nYou can pull this repository and run it locally using serve.sh (on a Unix-style\r\nmachine, e.g., Mac or Linux). It requires Python to run the local server. I'm\r\nopen to patches that add simpler support under Windows.\r\n\r\nTo use, just start it up and navigate to the given URL.\r\n\r\nPatches and issues are always welcome.",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
