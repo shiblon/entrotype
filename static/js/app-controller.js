@@ -81,6 +81,29 @@ angular.module('entrotypeControllers', [])
     return $scope.currentUser().stats($scope.layout.name());
   };
 
+  // Get things that need work.
+  $scope.getTroubleKeys = function() {
+    var threshold = 0.8,
+        stats = $scope.currentStats(),
+        nw = [];
+    for (var k in stats.keys) {
+      var ks = stats.keys[k];
+      if (ks.all() == 0) {
+        continue;
+      }
+      var goodness = ks.good() / ks.all();
+      if (goodness < threshold) {
+        nw.push({
+          rate: goodness,
+          percent: Math.floor(goodness * 100),
+          stat: ks,
+        });
+      }
+    }
+    nw.sort(function(a, b) { return a.rate - b.rate });
+    return nw;
+  };
+
   // Switches away from any user.
   $scope.logout = function() {
     stRemove(KEY_CURRENT_USER);
@@ -231,7 +254,6 @@ angular.module('entrotypeControllers', [])
 }])
 .controller('HomeCtrl', ['$scope', '$state', function($scope, $state) {
   if (!$scope.currentUser()) {
-    console.log('oops - no logged-in users');
     $state.go('users');
     return;
   }
@@ -240,6 +262,35 @@ angular.module('entrotypeControllers', [])
   };
 }])
 .controller('LevelsCtrl', ['$scope', '$state', function($scope, $state) {
+  var trouble = $scope.getTroubleKeys(),
+      needsWork = [];
+  for (var i = 0; i < trouble.length; i++) {
+    needsWork.push(trouble[i].stat.ch);
+  }
+  // Create a string with all of the characters that need work, sorted lexicographically.
+  needsWork = needsWork.sort().join('');
+
+  function intersectSortedStrings(s1, s2) {
+    var i2 = 0,
+        isect = [];
+    for (var i1 = 0; i1 < s1.length; i1++) {
+      while (s2[i2] < s1[i1]) {
+        i2++;
+      }
+      if (s2[i2] === s1[i1]) {
+        isect.push(s1[i1]);
+      }
+    }
+    return isect.join('');
+  }
+
+  // Determine whether this level would be a good one to review based on what needs work.
+  $scope.levelNeedsWork = function(level) {
+    var keys = $scope.layout.query(level.query()).sort().join('');
+    var intersection = intersectSortedStrings(keys, needsWork);
+    return intersection.length > 0;
+  };
+
   $scope.levelSelect = function(groupOrLevel) {
     if (!groupOrLevel.isGroup() && !$scope.isUnlocked(groupOrLevel)) {
       return;
@@ -252,29 +303,10 @@ angular.module('entrotypeControllers', [])
   };
 }])
 .controller('StatsCtrl', ['$scope', '$state', function($scope, $state) {
-  var user = $scope.currentUser(),
-      layout = $scope.layout,
-      lname = layout.name(),
-      stats = user.stats(lname);
+  var layout = $scope.layout,
+      stats = $scope.currentStats();
 
-  var threshold = 0.8;
-  var needsWork = [];
-  for (var k in stats.keys) {
-    var ks = stats.keys[k];
-    if (ks.all() == 0) {
-      continue;
-    }
-    var goodness = ks.good() / ks.all();
-    if (goodness < threshold) {
-      needsWork.push({
-        rate: goodness,
-        percent: Math.floor(goodness * 100),
-        stat: ks,
-      });
-    }
-  }
-  needsWork.sort(function(a, b) { return a.rate - b.rate });
-  $scope.needsWork = needsWork;
+  $scope.needsWork = $scope.getTroubleKeys();
 
   draw_kb_stats($('#nomod-stats'), layout, stats, 'none');
   draw_kb_stats($('#shift-stats'), layout, stats, 'shift');

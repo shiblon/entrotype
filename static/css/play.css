@@ -20,6 +20,10 @@ ul.none {
   margin: 0;
 }
 
+div.needsWork {
+  color: red;
+}
+
 ul.nobullets li {
   list-style: none;
 }

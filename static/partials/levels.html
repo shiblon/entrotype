@@ -56,7 +56,7 @@
     <div class="title-group">
       {{ group.title() }}
     </div>
-    <div ng-repeat="level in group.children()" ng-click="levelSelect(level)" ng-class="{locked: !isUnlocked(level), beaten: isBeaten(level)}" class="level">
+    <div ng-repeat="level in group.children()" ng-click="levelSelect(level)" ng-class="{locked: !isUnlocked(level), beaten: isBeaten(level), needsWork: levelNeedsWork(level)}" class="level">
       {{ level.title() }}
     </div>
     <div ng-click="levelSelect(group)" class="review-group">
