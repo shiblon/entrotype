@@ -32,12 +32,12 @@
   <div id="userbar">
     User "{{currentUser().name()}}" <i>(<a ng-click="logout()" class="clickable">logout</a>)</i>
   </div>
-  <div id="pathbar">
+  <nav id="pathbar">
     <span ng-repeat="item in $state.$current.path" ng-class="{clickable: !$last, current: $last}" ng-click="$state.go(item.name)">
       {{ simpleName(item.name) }}
       <span ng-if="!$last">::</span>
     </span>
-  </div>
+  </nav>
   <div ui-view id="title-container" class="content-container">
     <div style="padding: 2em; font-size: 3em;">
       <p>EntroType: {{ currentUser().name() }}</p>
