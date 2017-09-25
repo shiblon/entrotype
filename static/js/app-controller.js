@@ -354,13 +354,13 @@ angular.module('entrotypeControllers', [])
   var maxSuccessive = 0;
   var currSuccessive = 0;
 
-  var maxAttempts = 3*keySet.length;
+  var maxSeconds = 1 * 60;
   var requiredSuccessive = 1.5*keySet.length;
   var requiredGood = 0.8*keySet.length;
 
   var gameParent = $('#game-container').empty();
   var gs = new SingleKeyGameScreen(gameParent, makeSkyFall, {
-    num: maxAttempts,
+    num: 10000, // we'll stop at a certain time, rather than after a certain number.
     countdownSeconds: 0,
     onstart: function() {
       $scope.$apply(function() {
@@ -378,6 +378,9 @@ angular.module('entrotypeControllers', [])
       var s = Math.floor(t/1000);
       if (s > $scope.seconds) {
         $scope.seconds = s;
+        if ($scope.seconds > maxSeconds) {
+          return false;
+        }
         $scope.$apply(function() {
           $scope.clock = clockStr($scope.seconds);
         });
@@ -407,9 +410,8 @@ angular.module('entrotypeControllers', [])
         $scope.withCurrentUser(function(user) {
           var lname = $scope.layout.name();
           user.addStats(lname, gs.stats);
-          // TODO: refine criteria for beating a level. Minimum number of attempts?
           if (gs.stats.good() >= requiredGood
-              || maxSuccessive >= requiredSuccessive) {
+              && maxSuccessive >= requiredSuccessive) {
             user.beat(lname, $scope.query);
           }
         });
