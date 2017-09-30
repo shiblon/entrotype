@@ -11,15 +11,13 @@ function animloop(callback) {
     if (!repeat) {
       return;
     }
-    // Clamp time changes to 75 ms, since they should only ever be that long if
-    // the tab disappears or the game is otherwise paused. We don't want
-    // wormholes.
-    var ret = callback(Math.min(ts - last_ts, 75));
+    requestAnimationFrame(step);
+
+    var ret = callback(Math.max(0, Math.min(ts - last_ts, 35)));
     last_ts = ts;
     if (ret === false) {
       return;
     }
-    requestAnimationFrame(step);
   }
   return {
     "start": function() {
