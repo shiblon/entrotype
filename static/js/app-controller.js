@@ -66,7 +66,7 @@ angular.module('entrotypeControllers', [])
       keys[i] = v.replace(KEY_USER_REGEX, "$1");
     });
     return keys;
-  }
+  };
 
   // Sets or gets the current user.
   $scope.currentUser = function(_name) {
@@ -310,7 +310,7 @@ angular.module('entrotypeControllers', [])
   draw_kb_stats($('#nomod-stats'), layout, stats, 'none');
   draw_kb_stats($('#shift-stats'), layout, stats, 'shift');
 }])
-.controller('GameCtrl', ['$scope', '$state', '$stateParams', function($scope, $state, $stateParams) {
+.controller('GameCtrl', ['$scope', '$state', '$stateParams', '$timeout', function($scope, $state, $stateParams, $timeout) {
   $scope.path = KBLevels.normPath($stateParams.level);
   if (!$scope.path) {
     $state.go('home.levels');
@@ -378,6 +378,7 @@ angular.module('entrotypeControllers', [])
       var s = Math.floor(t/1000);
       if (s > $scope.seconds) {
         $scope.seconds = s;
+        console.log('hello', t, dt);
         if ($scope.seconds > maxSeconds) {
           return false;
         }
@@ -417,6 +418,11 @@ angular.module('entrotypeControllers', [])
         });
       });
     },
+  });
+
+  $scope.$on('$destroy', function() {
+    // Async to match how pause is usually called, avoiding nested $apply.
+    $timeout(function() { gs.pause() }, 0, false);
   });
 
   gs.start();

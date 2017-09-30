@@ -125,6 +125,10 @@ GameScreen.prototype.stop = function() {
   }
 };
 
+GameScreen.prototype.pause = function() {
+  this._game.pause();
+};
+
 GameScreen.mergeConfigs = function(mainConfig, toMerge) {
   mainConfig = mainConfig || {};
   toMerge = toMerge || {};
