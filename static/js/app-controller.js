@@ -378,7 +378,6 @@ angular.module('entrotypeControllers', [])
       var s = Math.floor(t/1000);
       if (s > $scope.seconds) {
         $scope.seconds = s;
-        console.log('hello', t, dt);
         if ($scope.seconds > maxSeconds) {
           return false;
         }
@@ -421,6 +420,7 @@ angular.module('entrotypeControllers', [])
   });
 
   $scope.$on('$destroy', function() {
+    console.log('game pause forced by blurred controller');
     // Async to match how pause is usually called, avoiding nested $apply.
     $timeout(function() { gs.pause() }, 0, false);
   });
