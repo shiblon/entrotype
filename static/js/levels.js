@@ -191,8 +191,11 @@ KBLevels = function(layout) {
         new Level('reach', 'H16-', 'Reach', 'The home row: letters and symbols you need to reach for.'),
       ]),
       new Group('shift', 'Shifted', 'Keys on the home row with shift held down.', [
-        new Level('letters', 'HL!,HR1234!', 'Letters', 'The home row: using the shift key to get capital letters.'),
-        new Level('symbols', 'HR56!', 'Symbols', 'The home row: using the shift key to get new symbols.'),
+        new Level('index', 'H2!', 'Index', 'The home row: the keys under your index fingers.'),
+        new Level('middle', 'H3!', 'Middle', 'The home row: the keys under your middle fingers.'),
+        new Level('ring', 'H4!', 'Ring', 'The home row: the keys under your ring fingers.'),
+        new Level('pinky', 'H5!', 'Pinky', 'The home row: the keys under your pinky fingers.'),
+        new Level('reach', 'H16!', 'Reach', 'The home row: letters and symbols you need to reach for.'),
       ]),
     ]),
     new Group('top', 'Top Row', 'All keys on the top row', [
@@ -205,8 +208,12 @@ KBLevels = function(layout) {
         new Level('sym_reach', 'T6-', 'Symbol Reach', 'The top row: symbols to reach for.'),
       ]),
       new Group('shift', 'Shifted', 'Keys on the top row with shift held down.', [
-        new Level('letters', 'TL!,TR12345!', 'Letters', 'The top row: using the shift key to get capital letters.'),
-        new Level('symbols', 'TR6!', 'Symbols', 'The top row: using the shift key to get new symbols.'),
+        new Level('index', 'T2!', 'Index', 'The top row: index fingers.'),
+        new Level('middle', 'T3!', 'Middle', 'The top row: middle fingers.'),
+        new Level('ring', 'T4!', 'Ring', 'The top row: ring fingers.'),
+        new Level('pinky', 'T5!', 'Pinky', 'The top row: pinky fingers.'),
+        new Level('letter_reach', 'T1!', 'Letter Reach', 'The top row: letters to reach for.'),
+        new Level('sym_reach', 'T6!', 'Symbol Reach', 'The top row: symbols to reach for.'),
       ]),
     ]),
     new Group('bottomrow', 'Bottom Row', 'All keys on the bottom row.', [
@@ -218,8 +225,11 @@ KBLevels = function(layout) {
         new Level('reach', 'B16-', 'Reach', 'The bottom row: letters to reach for.'),
       ]),
       new Group('shift', 'Shifted', 'Keys on the bottom row with shift held down.', [
-        new Level('letters', 'BL!,BR12!', 'Letters', 'The bottom row: using the shift key to get capital letters.'),
-        new Level('symbols', 'BR3456!', 'Symbols', 'The bottom row: using the shift key to get new symbols.'),
+        new Level('index', 'B2!', 'Index', 'The bottom row: index fingers.'),
+        new Level('middle', 'B3!', 'Middle', 'The bottom row: middle fingers.'),
+        new Level('ring', 'B4!', 'Ring', 'The bottom row: ring fingers.'),
+        new Level('pinky', 'B5!', 'Pinky', 'The bottom row: pinky fingers.'),
+        new Level('reach', 'B16!', 'Reach', 'The bottom row: letters to reach for.'),
       ]),
     ]),
     new Group('numberrow', 'Number Row', 'Keys on the number row.', [
