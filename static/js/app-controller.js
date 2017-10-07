@@ -186,7 +186,7 @@ angular.module('entrotypeControllers', [])
   };
 
   $scope.isUnlocked = function(groupOrLevel) {
-    // Levels don't determine unlockedness - go up a level and start the rael algorithm.
+    // Levels don't determine unlockedness - go up a level and start the real algorithm.
     var g = groupOrLevel;
     if (!g.isGroup()) {
       g = g.parent();
@@ -407,15 +407,8 @@ angular.module('entrotypeControllers', [])
         // lot of previous failures for a set of keys. That's making the user
         // a slave to the stats, and then they don't really reflect current
         // reality.
-	// TODO: if the stats are *worse* than before, we shouldn't downgrade the user.
         $scope.withCurrentUser(function(user) {
           var lname = $scope.layout.name();
-          var currRatio = stats.good() / stats.all();
-          var oldRatio = user.stats().good() / user.stats().all();
-          if (currRatio < oldRatio) {
-            console.log("Refusing to downgrade stats.");
-            return;
-          }
           user.addStats(lname, gs.stats);
           if (gs.stats.good() >= requiredGood
               && maxSuccessive >= requiredSuccessive) {

@@ -348,6 +348,7 @@ var simplify = KeyboardLayout.simplify = function(qlist) {
   for (var i in specs) {
     queries.push(joinSpec(specs[i]));
   }
+  console.log("simplify:", qlist, queries);
   return queries.join(",");
 };
 
