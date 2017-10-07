@@ -1,7 +1,6 @@
 (function(undefined) {
 
 function mergeQueriesIgnoringEmpty(_) {
-  console.log("merge queries:", Array.prototype.join.call(arguments, ", "));
   var usable = [];
   for (var i=0, len=arguments.length; i<len; i++) {
     var q = arguments[i];
@@ -9,7 +8,9 @@ function mergeQueriesIgnoringEmpty(_) {
       usable.push(q);
     }
   }
-  return KeyboardLayout.simplify(usable);
+  var merged = KeyboardLayout.simplify(usable);
+  console.log("merge queries:", Array.prototype.join.call(arguments, ", "), merged);
+  return merged;
 };
 
 function queryContainedIn(subQuery, superQuery) {
