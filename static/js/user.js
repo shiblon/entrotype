@@ -1,18 +1,5 @@
 (function(undefined) {
 
-function mergeQueriesIgnoringEmpty(_) {
-  var usable = [];
-  for (var i=0, len=arguments.length; i<len; i++) {
-    var q = arguments[i];
-    if (q != null && q !== "") {
-      usable.push(q);
-    }
-  }
-  var merged = KeyboardLayout.simplify(usable);
-  console.log("merge queries:", Array.prototype.join.call(arguments, ", "), merged);
-  return merged;
-};
-
 function queryContainedIn(subQuery, superQuery) {
   if (superQuery == null) {
     return false;
@@ -57,7 +44,9 @@ UserLayout.prototype.toObj = function() {
 };
 
 UserLayout.prototype.beat = function(query) {
-  this.query_beaten = mergeQueriesIgnoringEmpty(this.query_beaten, query);
+  console.log("previous:", this.query_beaten.toString(), "; additional:", query);
+  this.query_beaten = KeyboardLayout.simplify([this.query_beaten, query]);
+  console.log("new beaten query:", this.query_beaten.toString());
 };
 
 UserLayout.prototype.beaten = function(query) {

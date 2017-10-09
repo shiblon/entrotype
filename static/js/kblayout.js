@@ -47,7 +47,7 @@ KEY_OFFSETS = [1.0, 1.5, 1.8, 1.3, 1.3];
 CLASS_ROW = sortedStr("BHNT");
 CLASS_HAND = sortedStr("LR");
 CLASS_FINGER = sortedStr("123456");
-CLASS_MODIFIER = sortedStr("-!@^#$%&");
+CLASS_MODIFIER = sortedStr("-!"); // Other modifiers: "@^#$%&"
 
 ROW_DICT = strToSet(CLASS_ROW);
 HAND_DICT = strToSet(CLASS_HAND);
@@ -57,6 +57,7 @@ MODIFIER_DICT = strToSet(CLASS_MODIFIER);
 MODIFIER_SYMBOLS = {
   none: "-",
   shift: "!",
+  // Note: these are unused - if changing, also change CLASS_MODIFIER above.
   meta: "@",
   ctrl: "^",
   "meta-shift": "#",
@@ -278,77 +279,48 @@ var expand = KeyboardLayout.expand = function(qlist) {
 // It will favor readability over minimalism, grouping things by modifier, row,
 // hand, and finger. The string will be a comma-delimited list of queries.
 var simplify = KeyboardLayout.simplify = function(qlist) {
-  qlist = flattenQuery(qlist);
-  var canonical = canonicalizedQuery(qlist);
-  var specs = [];
-  for (var qi in canonical) {
-    // Create a spec, then fill in any missing entries with full values for them.
-    // This way we have long-form fully-qualified specs to merge, which is what
-    // we need for the merge algorithm to work.
-    specs.push(expandedSpec(splitSpecStr(canonical[qi])));
+  let canonical = canonicalizedQuery(flattenQuery(qlist));
+
+  // All of the canonical specs exploded into a set of single-key queries.
+  let specs = [...new Set(
+    canonical
+    .map(q => explodeSpec(splitSpecStr(q)))
+    .reduce((acc, ss) => acc.concat(ss))
+    .map(q => splitSpecStr(q))
+  )];
+
+  function keyWithoutProp(prop, spec) {
+    let s = Object.assign({}, spec);
+    s[prop] = "";
+    return joinSpec(s);
   }
 
-  // Takes out only the non-null specs, and canonicalizes their internals so
-  // they are minimally represented.
-  function filterAndCanonicalize(specs) {
-    var good = [];
-    for (var i = 0; i < specs.length; i++) {
-      var s = specs[i];
-      if (!s) {
-        continue;
-      }
-      good.push(canonicalizedSpec(s));
-    }
-    return good;
-  }
-
-  // Looks for pairs of mergeable items, meaning that you can specify a single
-  // field that can differ, and it will find all of the items that have all
-  // other fields in common and produce a merged item from all of them.
-  // For example, given "H3" and "H4" with "fingers" specified as the property
-  // to merge, it will product "H34". The "fingers" property differs, but the
-  // rest are the same.
-  function mergeCommon(specs, propToMerge) {
-    specs = specs.slice(0);
-    for (var i = 0; i < specs.length; i++) {
-      var a = specs[i];
-      if (!a) continue;
-      for (var j = i+1; j < specs.length; j++) {
-        var b = specs[j];
-        if (!b) continue;
-        // Now check that all of the non-merging properties are the same.
-        merge = true;
-        for (var k in a) {
-          if (k == propToMerge) continue;
-          if (a[k] != b[k]) {
-            merge = false;
-            break;
-          }
-        }
-        if (merge) {
-          a[propToMerge] += b[propToMerge];
-          specs[j] = null;
-        }
+  // For each of finger, hand, row, and modifier, we create a mapping from all
+  // of the *other* properties to the values that particular property takes on.
+  // So, for example, if we have something like this:
+  // ["HR4-", "HR3-", "HL3-"]
+  // We create this sort of mapping when "finger" is up for merging:
+  // {"HR-": "34", "HL-": "3"}
+  // This shows us that we can merge everything that shares "HR-" into a single
+  // query with multiple fingers represented.
+  for (let p of ["fingers", "hands", "rows", "modifiers"]) {
+    let unique = new Map();
+    for (s of specs) {
+      let k = keyWithoutProp(p, s);
+      if (!unique.has(k)) unique.set(k, []);
+      if (!unique.get(k).includes(p)) {
+        unique.get(k).push(s[p]);
       }
     }
-    return filterAndCanonicalize(specs);
-  }
+    specs = [];
+    for ([k, v] of unique) {
+      specs.push(splitSpecStr(k + v.join('')));
+    }
 
-  // Merge hierarchically. This won't necessarily produce a minimal
-  // representation, but the representation it does produce will be easily
-  // understood by a human.
-  specs = mergeCommon(specs, 'fingers');
-  specs = mergeCommon(specs, 'hands');
-  specs = mergeCommon(specs, 'rows');
-  specs = mergeCommon(specs, 'modifiers');
-
-  // The queries we now have as specs are all as simple as they can get. Pass
-  // out a list of appropriate strings.
-  var queries = [];
-  for (var i in specs) {
-    queries.push(joinSpec(specs[i]));
+    // Now we have all of the non-prop values in the map keys, and all of the
+    // prop values in the value array for those keys. Convert back to
   }
-  return queries.join(",");
+  return specs.map(canonicalizedSpec).map(joinSpec).join(",");
 };
 
 KeyboardLayout.prototype.configKey = function(modifier, row, col) {
