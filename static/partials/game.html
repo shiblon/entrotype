@@ -41,6 +41,7 @@
   <div class="game-footer">
     <div ng-class="{'no-display': !finished}" ng-click="$state.reload($state.$current.name)" class="nav-el">Again</div>
     <div ng-class="{'no-display': !(finished || paused)}" ng-click="$state.go('home.levels')" class="nav-el">Levels</div>
+    <div ng-class="{'no-display': !(finished || paused)}" ng-click="$state.go('home.review')" class="nav-el">Review</div>
     <div ng-class="{'no-display': !(finished || paused)}" ng-click="$state.go('home')" class="nav-el">Home</div>
   </div>
 </div>

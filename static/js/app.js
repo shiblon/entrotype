@@ -21,6 +21,11 @@ angular.module('entrotypeApp', [
       controller: 'LevelsCtrl',
       url: '/levels',
     })
+    .state('home.review', {
+      templateUrl: 'partials/levels.html',
+      controller: 'ReviewCtrl',
+      url: '/review',
+    })
     .state('home.stats', {
       templateUrl: 'partials/stats.html',
       controller: 'StatsCtrl',
@@ -30,7 +35,8 @@ angular.module('entrotypeApp', [
       templateUrl: 'partials/game.html',
       controller: 'GameCtrl',
       params: {
-        'level': '',
+        'path': '', // path to level
+        'q': '', // query
       },
       url: '/game', // TODO: remove this when things are working properly.
     })

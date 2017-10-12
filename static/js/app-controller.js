@@ -1,7 +1,42 @@
 angular.module('entrotypeControllers', [])
 .controller('ParentCtrl', ['$scope', '$state', '$location', function($scope, $state, $location) {
-  $scope.levels = KB_LEVELS;
   $scope.layout = new KeyboardLayout('ansi-qwerty');
+
+  // Determine whether this level would be a good one to review based on what
+  // needs work.
+  function intersectSortedStrings(s1, s2) {
+    var i2 = 0,
+        isect = [];
+    for (var i1 = 0; i1 < s1.length; i1++) {
+      while (s2[i2] < s1[i1]) {
+        i2++;
+      }
+      if (s2[i2] === s1[i1]) {
+        isect.push(s1[i1]);
+      }
+    }
+    return isect.join('');
+  }
+
+  $scope.levelNeedsWork = function(level) {
+    const needsWork = $scope.getTroubleKeys().map(t => t.stat.ch).sort().join('');
+
+    var keys = $scope.layout.query(level.query()).sort().join('');
+    var intersection = intersectSortedStrings(keys, needsWork);
+    return intersection.length > 0;
+  };
+
+  $scope.levelSelect = function(groupOrLevel) {
+    if (!groupOrLevel.isGroup() && !$scope.isUnlocked(groupOrLevel)) {
+      return;
+    }
+    console.log('levelSelect', groupOrLevel.query());
+    var query = KeyboardLayout.simplify(groupOrLevel.query());
+    $state.go('home.game', {
+      'path': KBLevels.normPath(groupOrLevel.path()),
+      'q': KeyboardLayout.simplify([query]),
+    });
+  };
 
   $scope.back = function() {
     window.history.back();
@@ -260,46 +295,11 @@ angular.module('entrotypeControllers', [])
     return name.replace(/^.*\./, '');
   };
 }])
+.controller('ReviewCtrl', ['$scope', '$state', function($scope, $state) {
+  $scope.levels = KB_REVIEW;
+}])
 .controller('LevelsCtrl', ['$scope', '$state', function($scope, $state) {
-  var trouble = $scope.getTroubleKeys(),
-      needsWork = [];
-  for (var i = 0; i < trouble.length; i++) {
-    needsWork.push(trouble[i].stat.ch);
-  }
-  // Create a string with all of the characters that need work, sorted lexicographically.
-  needsWork = needsWork.sort().join('');
-
-  function intersectSortedStrings(s1, s2) {
-    var i2 = 0,
-        isect = [];
-    for (var i1 = 0; i1 < s1.length; i1++) {
-      while (s2[i2] < s1[i1]) {
-        i2++;
-      }
-      if (s2[i2] === s1[i1]) {
-        isect.push(s1[i1]);
-      }
-    }
-    return isect.join('');
-  }
-
-  // Determine whether this level would be a good one to review based on what needs work.
-  $scope.levelNeedsWork = function(level) {
-    var keys = $scope.layout.query(level.query()).sort().join('');
-    var intersection = intersectSortedStrings(keys, needsWork);
-    return intersection.length > 0;
-  };
-
-  $scope.levelSelect = function(groupOrLevel) {
-    if (!groupOrLevel.isGroup() && !$scope.isUnlocked(groupOrLevel)) {
-      return;
-    }
-    var query = KeyboardLayout.simplify(groupOrLevel.query());
-    $state.go('home.game', {
-      'level': groupOrLevel.path(),
-      'q': query,
-    });
-  };
+  $scope.levels = KB_LEVELS;
 }])
 .controller('StatsCtrl', ['$scope', '$state', function($scope, $state) {
   var layout = $scope.layout,
@@ -311,7 +311,7 @@ angular.module('entrotypeControllers', [])
   draw_kb_stats($('#shift-stats'), layout, stats, 'shift');
 }])
 .controller('GameCtrl', ['$scope', '$state', '$stateParams', '$timeout', function($scope, $state, $stateParams, $timeout) {
-  $scope.path = KBLevels.normPath($stateParams.level);
+  $scope.path = $stateParams.path;
   if (!$scope.path) {
     $state.go('home.levels');
     return;
@@ -334,8 +334,7 @@ angular.module('entrotypeControllers', [])
     return ":" + tfmt(seconds);
   }
 
-  $scope.level = $scope.levels.search($scope.path);
-  $scope.query = KeyboardLayout.simplify($scope.level.query());
+  $scope.query = $stateParams.q;
 
   var keySet = $scope.layout.query($scope.query);
 

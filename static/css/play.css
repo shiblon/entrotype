@@ -41,10 +41,11 @@ ul.none li {
 }
 
 ul.blocky li {
+  font-size: 18pt;
   display: inline-block;
   border: 1px solid gray;
-  padding: 0.5em;
-  margin: 0 2px;
+  padding: 0.4em;
+  margin: 2px;
 }
 
 .no-display {

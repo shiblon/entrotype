@@ -294,6 +294,20 @@ KBLevels.prototype.ls = function(path) {
 
 KBLevels.normPath = normalizePath;
 
-KB_LEVELS = new KBLevels();
+class KBReview extends KBLevels {
+  constructor() {
+    super();
+    this._root = new Group('all', 'Skill Review', 'All characters on the keyboard.', [
+      new Group('basic', 'Basic', 'All keys, unmodified.', [
+        new Level('all', '-', 'All'),
+      ]),
+      new Group('shifted', 'Shifted', 'All keys, shifted.', [
+        new Level('all', '!', 'All'),
+      ]),
+    ]);
+  }
+}
 
+KB_LEVELS = new KBLevels();
+KB_REVIEW = new KBReview();
 }());
